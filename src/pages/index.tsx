@@ -35,7 +35,10 @@ function Pages({ articles }: PagesProps): JSX.Element {
 
   return (
     <>
-      <NextSeo title="オモコロアーカイブ" />
+      <NextSeo
+        description="オモコロの非公式アーカイブサイトです"
+        title="オモコロアーカイブ"
+      />
       <Top articles={articles} onSubmit={handleSubmit} />
     </>
   );
