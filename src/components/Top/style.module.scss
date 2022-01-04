@@ -1,0 +1,346 @@
+@import "styles/breakpoints";
+@import "sass-mq";
+@import url("https://fonts.googleapis.com/css2?family=RocknRoll+One&display=swap");
+
+.wrapper {
+  display: grid;
+  grid-template: auto 1fr auto / auto;
+  position: relative;
+}
+
+.header {
+  background: #0dbfdb;
+  position: sticky;
+  top: 0;
+  transition: 200ms;
+  z-index: 1;
+  @include mq($until: tablet) {
+    padding: 8px 0;
+  }
+  @include mq($from: tablet) {
+    padding: 24px 0;
+  }
+}
+
+.narrowHeader {
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+.headerInner {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template: auto / auto 1fr auto auto;
+  margin: 0 auto;
+  max-width: 1280px;
+  @include mq($until: tablet) {
+    padding: 0 8px;
+  }
+  @include mq($from: tablet) {
+    padding: 0 24px;
+  }
+}
+
+.heading1 {
+  color: #f4121d;
+  font-family: "RocknRoll One", sans-serif;
+  font-size: 3.6rem;
+  font-style: italic;
+  margin: -8px 0 0;
+  text-shadow: 1px 0 #fff, -1px 0 #fff, 0 1px #fff, 0 -1px #fff, 2px 0 #000,
+    -2px 0 #000, 0 2px #000, 0 -2px #000, 4px 4px #000;
+  transition: 200ms;
+  @include mq($until: tablet) {
+    height: 0;
+    overflow: hidden;
+    width: 0;
+  }
+}
+
+.narrowHeader .heading1 {
+  font-size: 2.4rem;
+}
+
+.sortLabel {
+  align-items: center;
+  border: 1px solid #fff;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  gap: 4px;
+  justify-self: flex-end;
+  padding: 4px 4px 4px 8px;
+  position: relative;
+}
+
+.checkbox {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 0;
+}
+
+.formInner {
+  align-items: center;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 0 4px #aaa;
+  display: grid;
+  grid-template: 32px / 160px 32px;
+  padding: 0 4px 0 16px;
+}
+
+.input {
+  outline: none;
+}
+
+.searchButton {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.searchIcon {
+  color: #0dbfdb;
+}
+
+.filterButton {
+  align-items: center;
+  border: 1px solid #fff;
+  color: #fff;
+  display: flex;
+  gap: 4px;
+  padding: 4px 4px 4px 8px;
+}
+
+.filterWrapper {
+  background: #0dbfdb;
+  border-bottom: 1px solid #fff;
+  color: #fff;
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 100%;
+  width: 100%;
+}
+
+.filterInner {
+  align-items: center;
+  border-top: 1px solid #fff;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin: 0 auto;
+  max-width: 1280px;
+  padding-bottom: 24px;
+  padding-top: 24px;
+  @include mq($until: tablet) {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  @include mq($from: tablet) {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+.dateRangeWrapper {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.dateInput {
+  border-bottom: 1px solid #fff;
+  color: #fff;
+  outline: none;
+  padding: 2px 4px;
+}
+
+.open {
+  height: auto;
+}
+
+.searchButton2 {
+  align-items: center;
+  border: 1px solid #fff;
+  color: #fff;
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.mainInner {
+  margin: 0 auto;
+  max-width: 1280px;
+  @include mq($until: tablet) {
+    padding: 8px;
+  }
+  @include mq($from: tablet) {
+    padding: 24px;
+  }
+}
+
+.list {
+  display: grid;
+  overflow: hidden !important;
+  @include mq($until: tablet) {
+    gap: 16px;
+    grid-template-columns: repeat(1, 1fr);
+  }
+  @include mq($from: tablet, $until: desktop) {
+    gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @include mq($from: desktop, $until: wide) {
+    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @include mq($from: wide) {
+    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.item {
+  gap: 8px;
+  position: relative;
+  @include mq($until: tablet) {
+    display: grid;
+    grid-template: auto / 120px 1fr;
+  }
+  @include mq($from: tablet) {
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 8px;
+  }
+}
+
+.item::after {
+  background: #aaa;
+  bottom: -8px;
+  content: "";
+  display: block;
+  height: 1px;
+  position: absolute;
+  width: 100%;
+}
+
+.thumbnailWrapper {
+  position: relative;
+}
+
+.thumbnailWrapper::before {
+  content: "";
+  display: block;
+  padding: 56.25% 0 0;
+}
+
+.detailWrapper {
+  align-items: center;
+  display: grid;
+  @include mq($until: tablet) {
+    gap: 4px 0;
+  }
+  @include mq($from: tablet) {
+    gap: 8px 0;
+  }
+}
+
+.categoryText {
+  color: #fff;
+  font-size: 1rem;
+  grid-column: 1 / 2;
+  justify-self: flex-start;
+  padding: 3px 10px;
+}
+
+.fourFrame {
+  background: #00a2e6;
+}
+
+.radio {
+  background: #00a810;
+}
+
+.video {
+  background: #d4b537;
+}
+
+.jimocoro {
+  background: #e2007f;
+}
+
+.onigiri {
+  background: #76fb60;
+  color: #000;
+}
+
+.bros {
+  background: #ad27f3;
+}
+
+.specialFeature {
+  background: #dd0101;
+}
+
+.dateText {
+  color: #72696a;
+  font-size: 1.2rem;
+  font-weight: 700;
+  grid-column: 2 / 3;
+  justify-self: flex-end;
+}
+
+.heading2Anchor {
+  grid-column: 1 / 3;
+}
+
+.heading2 {
+  @include mq($until: tablet) {
+    font-size: 1.4rem;
+  }
+  @include mq($from: tablet) {
+    font-size: 1.6rem;
+  }
+}
+
+.staffList {
+  display: flex;
+  gap: 8px;
+  grid-column: 1 / 3;
+  justify-content: flex-end;
+}
+
+.staffAnchor {
+  border-bottom: 1px solid #72696a;
+  color: #72696a;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0 0 2px;
+}
+
+.footer {
+  background: #dd0101;
+  @include mq($until: tablet) {
+    padding: 8px 0;
+  }
+  @include mq($from: tablet) {
+    padding: 24px 0;
+  }
+}
+
+.footerInner {
+  color: #fff;
+  font-weight: 700;
+  margin: 0 auto;
+  max-width: 1280px;
+  @include mq($until: tablet) {
+    padding: 0 8px;
+  }
+  @include mq($from: tablet) {
+    padding: 0 24px;
+  }
+}
