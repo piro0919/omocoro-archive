@@ -145,11 +145,14 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
 
               break;
             }
-            case "おにぎりクラブ限定": {
+            case "おにぎりクラブ限定":
+            case "限定コラム":
+            case "ビジネス会議": {
               categoryClassName = styles.onigiri;
 
               break;
             }
+            case "ブロス記事広告":
             case "ブロス": {
               categoryClassName = styles.bros;
 
@@ -157,6 +160,21 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
             }
             case "特集": {
               categoryClassName = styles.specialFeature;
+
+              break;
+            }
+            case "記事広告": {
+              categoryClassName = styles.advertorial;
+
+              break;
+            }
+            case "お知らせ": {
+              categoryClassName = styles.notice;
+
+              break;
+            }
+            case "まとめ": {
+              categoryClassName = styles.summary;
 
               break;
             }
