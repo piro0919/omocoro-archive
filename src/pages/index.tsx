@@ -10,7 +10,7 @@ import Top, { TopProps } from "components/Top";
 export type PagesProps = Pick<TopProps, "articles">;
 
 function Pages({ articles }: PagesProps): JSX.Element {
-  const router = useRouter();
+  const { query: routerQuery, ...router } = useRouter();
   const handleSubmit = useCallback<TopProps["onSubmit"]>(
     ({ from, isNewOrder, query, until }) => {
       router.push(
@@ -18,6 +18,7 @@ function Pages({ articles }: PagesProps): JSX.Element {
           pathname: "/",
           query: queryString.stringify(
             {
+              ...routerQuery,
               from,
               query,
               until,
@@ -30,7 +31,7 @@ function Pages({ articles }: PagesProps): JSX.Element {
         { shallow: true }
       );
     },
-    [router]
+    [router, routerQuery]
   );
 
   return (
@@ -52,9 +53,9 @@ export const getStaticProps: GetStaticProps<PagesProps> = async () => {
   const articles = await client
     .getEntries<IArticleFields>({
       content_type: "article",
-      limit: 20,
+      limit: 24,
       order: "-fields.date",
-      skip: 20 * 0,
+      skip: 24 * 0,
     })
     .then(({ items }) =>
       items.map(

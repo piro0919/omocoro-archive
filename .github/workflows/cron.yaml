@@ -1,0 +1,13 @@
+name: 12-hours-cron
+on:
+  schedule:
+    - cron: "* */12 * * *"
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check new articles
+        run: |
+          curl --request POST \
+          --url 'https://omocoro-archive.kk-web.link/api/articles' \
+          --header 'Authorization: Bearer ${{ secrets.API_SECRET_KEY }}'

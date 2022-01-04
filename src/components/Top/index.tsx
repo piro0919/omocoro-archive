@@ -21,9 +21,11 @@ import {
   FaCaretDown,
   FaCaretUp,
   FaLongArrowAltDown,
+  FaRegTimesCircle,
   FaSearch,
 } from "react-icons/fa";
 import InfiniteScroll, { Props } from "react-infinite-scroll-component";
+import Loader from "react-loader-spinner";
 import useSWRInfinite from "swr/infinite";
 import styles from "./style.module.scss";
 
@@ -43,6 +45,11 @@ type Article = {
   url: string;
 };
 
+type Data = {
+  articles: Article[];
+  total: number;
+};
+
 export type TopProps = {
   articles: Article[];
   onSubmit: SubmitHandler<FieldValues>;
@@ -50,7 +57,7 @@ export type TopProps = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetcher = (url: string): Promise<any> =>
-  axios.get(`/api${url}`).then(({ data }) => data);
+  axios.get(`/api${url}`).then(({ data }) => [data]);
 const getKey = (
   pageIndex: number,
   previousPageData: Article[]
@@ -76,33 +83,43 @@ const getKey = (
           ? dayjs(until).format("YYYY-MM-DD")
           : undefined,
       "fields.staffs": staffs,
-      limit: 20,
+      limit: 24,
       order: typeof order === "string" ? order : "-fields.date",
-      skip: 20 * pageIndex,
+      skip: 24 * pageIndex,
     },
     { skipEmptyString: true }
   )}`;
 };
 
 function Top({ articles, onSubmit }: TopProps): JSX.Element {
-  const { query: routerQuery } = useRouter();
-  const { from, order, query, until } = useMemo(
+  const { query: routerQuery, ...router } = useRouter();
+  const { from, order, query, staffs, until } = useMemo(
     () => routerQuery,
     [routerQuery]
   );
-  const { data, isValidating, setSize, size } = useSWRInfinite<Article[]>(
+  const { data, isValidating, setSize, size } = useSWRInfinite<Data[]>(
     getKey,
     fetcher,
     {
-      fallbackData: Object.keys(routerQuery).length ? [] : [articles],
+      fallbackData: Object.keys(routerQuery).length
+        ? []
+        : [[{ articles, total: 0 }]],
       revalidateOnFocus: false,
     }
   );
+  const total = useMemo(() => {
+    if (!data || !data[0]) {
+      return undefined;
+    }
+
+    const { total } = data[0][0];
+
+    return total;
+  }, [data]);
   const items = useMemo(
     () =>
-      (data || [])
-        .flat()
-        .map(({ category, date, image, staffs, title, url }) => {
+      (data || []).flat().map(({ articles }) =>
+        articles.map(({ category, date, image, staffs, title, url }) => {
           let categoryClassName = "";
 
           switch (category) {
@@ -192,7 +209,8 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
               </div>
             </div>
           );
-        }),
+        })
+      ),
     [data]
   );
   const [headerClassName, setHeaderClassName] = useState("");
@@ -252,6 +270,11 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
   useEffect(() => {
     setStyle({ minHeight: `${onlyHeight}px` });
   }, [onlyHeight]);
+
+  useEffect(() => {
+    toggleMenu.off();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routerQuery]);
 
   return (
     <div className={styles.wrapper} style={style}>
@@ -321,13 +344,115 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
       </header>
       <main>
         <div className={styles.mainInner}>
+          <div className={styles.searchWordWrapper}>
+            {typeof total === "number" ? `${total.toLocaleString()} 件` : null}
+            {typeof staffs === "undefined" ? null : (
+              <div className={styles.staffsWrapper}>
+                {staffs}
+                <button
+                  className={styles.closeButton}
+                  onClick={(): void => {
+                    router.push(
+                      {
+                        pathname: "/",
+                        query: queryString.stringify(
+                          {
+                            ...routerQuery,
+                            staffs: undefined,
+                          },
+                          {
+                            skipEmptyString: true,
+                          }
+                        ),
+                      },
+                      undefined,
+                      {
+                        shallow: true,
+                      }
+                    );
+                  }}
+                >
+                  <FaRegTimesCircle />
+                </button>
+              </div>
+            )}
+            <div className={styles.dateRangeWrapper2}>
+              {typeof from === "string" ? (
+                <div className={styles.dateWrapper}>
+                  {dayjs(from).format("YYYY/MM/DD")}
+                  <button
+                    className={styles.closeButton}
+                    onClick={(): void => {
+                      router.push(
+                        {
+                          pathname: "/",
+                          query: queryString.stringify(
+                            {
+                              ...routerQuery,
+                              from: undefined,
+                            },
+                            {
+                              skipEmptyString: true,
+                            }
+                          ),
+                        },
+                        undefined,
+                        {
+                          shallow: true,
+                        }
+                      );
+                    }}
+                  >
+                    <FaRegTimesCircle />
+                  </button>
+                </div>
+              ) : null}
+              {typeof from === "string" || typeof until === "string"
+                ? "〜"
+                : null}
+              {typeof until === "string" ? (
+                <div className={styles.dateWrapper}>
+                  {dayjs(until).format("YYYY/MM/DD")}
+                  <button
+                    className={styles.closeButton}
+                    onClick={(): void => {
+                      router.push(
+                        {
+                          pathname: "/",
+                          query: queryString.stringify(
+                            {
+                              ...routerQuery,
+                              until: undefined,
+                            },
+                            {
+                              skipEmptyString: true,
+                            }
+                          ),
+                        },
+                        undefined,
+                        {
+                          shallow: true,
+                        }
+                      );
+                    }}
+                  >
+                    <FaRegTimesCircle />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
           {items.length ? (
             <InfiniteScroll
               className={styles.list}
               dataLength={items.length}
-              hasMore={true}
+              hasMore={!!total && total > items.length}
               key={queryString.stringify(routerQuery)}
-              loader={null}
+              loader={
+                <div className={styles.loaderWrapper}>
+                  <Loader color="#fff" height={36} type="TailSpin" width={36} />
+                </div>
+              }
               next={next}
             >
               {items}

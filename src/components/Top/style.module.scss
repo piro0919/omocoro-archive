@@ -30,14 +30,15 @@
 .headerInner {
   align-items: center;
   display: grid;
-  gap: 16px;
   grid-template: auto / auto 1fr auto auto;
   margin: 0 auto;
   max-width: 1280px;
   @include mq($until: tablet) {
+    gap: 8px;
     padding: 0 8px;
   }
   @include mq($from: tablet) {
+    gap: 16px;
     padding: 0 24px;
   }
 }
@@ -88,8 +89,14 @@
   border-radius: 16px;
   box-shadow: 0 0 4px #aaa;
   display: grid;
-  grid-template: 32px / 160px 32px;
+  grid-template-rows: 32px;
   padding: 0 4px 0 16px;
+  @include mq($until: tablet) {
+    grid-template-columns: 120px 32px;
+  }
+  @include mq($from: tablet) {
+    grid-template-columns: 160px 32px;
+  }
 }
 
 .input {
@@ -183,9 +190,40 @@
   }
 }
 
+.searchWordWrapper {
+  color: #72696a;
+  display: flex;
+  gap: 16px;
+  @include mq($until: tablet) {
+    padding-bottom: 8px;
+  }
+  @include mq($from: tablet) {
+    padding-bottom: 24px;
+  }
+}
+
+.dateRangeWrapper2 {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.staffsWrapper,
+.dateWrapper {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.closeButton {
+  display: flex;
+}
+
 .list {
   display: grid;
   overflow: hidden !important;
+  padding: 0 0 72px;
+  position: relative;
   @include mq($until: tablet) {
     gap: 16px;
     grid-template-columns: repeat(1, 1fr);
@@ -202,6 +240,14 @@
     gap: 24px;
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+.loaderWrapper {
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
 }
 
 .item {
