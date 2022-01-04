@@ -104,6 +104,7 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
       fallbackData: Object.keys(routerQuery).length
         ? []
         : [[{ articles, total: 0 }]],
+      revalidateFirstPage: false,
       revalidateOnFocus: false,
     }
   );
