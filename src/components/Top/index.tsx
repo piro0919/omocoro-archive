@@ -27,6 +27,7 @@ import {
 import InfiniteScroll, { Props } from "react-infinite-scroll-component";
 import Loader from "react-loader-spinner";
 import useSWRInfinite from "swr/infinite";
+import logo from "./images/logo.png";
 import styles from "./style.module.scss";
 
 type FieldValues = {
@@ -214,6 +215,7 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
                           href={{
                             pathname: "/",
                             query: {
+                              ...routerQuery,
                               staffs: staff,
                             },
                           }}
@@ -230,7 +232,7 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
           );
         })
       ),
-    [data]
+    [data, routerQuery]
   );
   const [headerClassName, setHeaderClassName] = useState("");
   const next = useCallback<Props["next"]>(() => {
@@ -301,8 +303,9 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className={styles.headerInner}>
             <Link href="/" shallow={true}>
-              <a>
+              <a className={styles.logoAnchor}>
                 <h1 className={styles.heading1}>オモコロアーカイブ</h1>
+                <Image alt="オモコロアーカイブ" layout="fill" src={logo} />
               </a>
             </Link>
             <label className={styles.sortLabel}>

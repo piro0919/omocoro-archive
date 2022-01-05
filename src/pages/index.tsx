@@ -37,8 +37,27 @@ function Pages({ articles }: PagesProps): JSX.Element {
   return (
     <>
       <NextSeo
+        canonical="https://omocoro-archive.kk-web.link/"
         description="オモコロの非公式アーカイブサイトです"
+        openGraph={{
+          description: "オモコロの非公式アーカイブサイトです",
+          images: [
+            {
+              alt: "オモコロの非公式アーカイブサイトです",
+              height: 630,
+              type: "image/jpeg",
+              url: "https://omocoro-archive.kk-web.link/og-image-01.jpg",
+              width: 1200,
+            },
+          ],
+          site_name: "オモコロアーカイブ",
+          title: "オモコロアーカイブ",
+          url: "https://omocoro-archive.kk-web.link/",
+        }}
         title="オモコロアーカイブ"
+        twitter={{
+          cardType: "summary_large_image",
+        }}
       />
       <Top articles={articles} onSubmit={handleSubmit} />
     </>

@@ -1,6 +1,5 @@
 @import "styles/breakpoints";
 @import "sass-mq";
-@import url("https://fonts.googleapis.com/css2?family=RocknRoll+One&display=swap");
 
 .wrapper {
   display: grid;
@@ -44,23 +43,27 @@
 }
 
 .heading1 {
-  color: #f4121d;
-  font-family: "RocknRoll One", sans-serif;
-  font-size: 3.6rem;
-  font-style: italic;
-  margin: -8px 0 0;
-  text-shadow: 1px 0 #fff, -1px 0 #fff, 0 1px #fff, 0 -1px #fff, 2px 0 #000,
-    -2px 0 #000, 0 2px #000, 0 -2px #000, 4px 4px #000;
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 0;
+}
+
+.logoAnchor {
+  height: calc(184px * 0.22);
+  position: relative;
   transition: 200ms;
+  width: calc(1220px * 0.22);
   @include mq($until: tablet) {
-    height: 0;
+    height: 0 !important;
     overflow: hidden;
-    width: 0;
+    width: 0 !important;
   }
 }
 
-.narrowHeader .heading1 {
-  font-size: 2.4rem;
+.narrowHeader .logoAnchor {
+  height: calc(184px * 0.15);
+  width: calc(1220px * 0.15);
 }
 
 .sortLabel {
