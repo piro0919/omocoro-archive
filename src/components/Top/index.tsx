@@ -1,3 +1,4 @@
+import NoSSR from "@mpth/react-no-ssr";
 import { useScrollPosition } from "@n8tb1t/use-scroll-position";
 import useSwitch from "@react-hook/switch";
 import { useWindowHeight } from "@react-hook/window-size";
@@ -26,6 +27,8 @@ import {
 } from "react-icons/fa";
 import InfiniteScroll, { Props } from "react-infinite-scroll-component";
 import Loader from "react-loader-spinner";
+import { useStorageState } from "react-storage-hooks";
+import Toggle from "react-toggle";
 import useSWRInfinite from "swr/infinite";
 import logo from "./images/logo.png";
 import styles from "./style.module.scss";
@@ -70,11 +73,13 @@ const getKey = (
   const {
     location: { search },
   } = window;
-  const { from, order, query, staffs, until } = queryString.parse(search);
+  const { category, from, order, query, staffs, until } =
+    queryString.parse(search);
 
   return `/articles?${queryString.stringify(
     {
       query,
+      "fields.category": category,
       "fields.date[gte]":
         typeof from === "string"
           ? dayjs(from).add(-1, "day").format("YYYY-MM-DD")
@@ -91,12 +96,30 @@ const getKey = (
     { skipEmptyString: true }
   )}`;
 };
+const dummyStorage = {
+  getItem: (): null => null,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  removeItem: (): void => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  setItem: (): void => {},
+};
 
 function Top({ articles, onSubmit }: TopProps): JSX.Element {
   const { query: routerQuery, ...router } = useRouter();
-  const { from, order, query, staffs, until } = useMemo(
+  const { category, from, order, query, staffs, until } = useMemo(
     () => routerQuery,
     [routerQuery]
+  );
+  const [onigiri, setOnigiri] = useStorageState(
+    typeof window === "undefined" ? dummyStorage : localStorage,
+    "onigiri",
+    true
+  );
+  const handleChange2 = useCallback<ChangeEventHandler<HTMLInputElement>>(
+    ({ currentTarget: { checked } }) => {
+      setOnigiri(checked);
+    },
+    [setOnigiri]
   );
   const { data, isValidating, setSize, size } = useSWRInfinite<Data[]>(
     getKey,
@@ -121,118 +144,134 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
   const items = useMemo(
     () =>
       (data || []).flat().map(({ articles }) =>
-        articles.map(({ category, date, image, staffs, title, url }) => {
-          let categoryClassName = "";
+        articles
+          .filter(
+            ({ category }) => onigiri || category !== "おにぎりクラブ限定"
+          )
+          .map(({ category, date, image, staffs, title, url }) => {
+            let categoryClassName = "";
 
-          switch (category) {
-            case "4コマ": {
-              categoryClassName = styles.fourFrame;
+            switch (category) {
+              case "4コマ": {
+                categoryClassName = styles.fourFrame;
 
-              break;
+                break;
+              }
+              case "連載":
+              case "ラジオ": {
+                categoryClassName = styles.radio;
+
+                break;
+              }
+              case "動画": {
+                categoryClassName = styles.video;
+
+                break;
+              }
+              case "ジモコロ": {
+                categoryClassName = styles.jimocoro;
+
+                break;
+              }
+              case "おにぎりクラブ限定":
+              case "限定コラム":
+              case "ビジネス会議": {
+                categoryClassName = styles.onigiri;
+
+                break;
+              }
+              case "ブロス記事広告":
+              case "ブロス": {
+                categoryClassName = styles.bros;
+
+                break;
+              }
+              case "特集": {
+                categoryClassName = styles.specialFeature;
+
+                break;
+              }
+              case "記事広告": {
+                categoryClassName = styles.advertorial;
+
+                break;
+              }
+              case "お知らせ": {
+                categoryClassName = styles.notice;
+
+                break;
+              }
+              case "まとめ": {
+                categoryClassName = styles.summary;
+
+                break;
+              }
             }
-            case "連載":
-            case "ラジオ": {
-              categoryClassName = styles.radio;
 
-              break;
-            }
-            case "動画": {
-              categoryClassName = styles.video;
-
-              break;
-            }
-            case "ジモコロ": {
-              categoryClassName = styles.jimocoro;
-
-              break;
-            }
-            case "おにぎりクラブ限定":
-            case "限定コラム":
-            case "ビジネス会議": {
-              categoryClassName = styles.onigiri;
-
-              break;
-            }
-            case "ブロス記事広告":
-            case "ブロス": {
-              categoryClassName = styles.bros;
-
-              break;
-            }
-            case "特集": {
-              categoryClassName = styles.specialFeature;
-
-              break;
-            }
-            case "記事広告": {
-              categoryClassName = styles.advertorial;
-
-              break;
-            }
-            case "お知らせ": {
-              categoryClassName = styles.notice;
-
-              break;
-            }
-            case "まとめ": {
-              categoryClassName = styles.summary;
-
-              break;
-            }
-          }
-
-          return (
-            <div className={styles.item} key={url}>
-              <Link href={url}>
-                <a target="_blank">
-                  <div className={styles.thumbnailWrapper}>
-                    <Image
-                      alt={title}
-                      layout="fill"
-                      objectFit="cover"
-                      src={image}
-                    />
-                  </div>
-                </a>
-              </Link>
-              <div className={styles.detailWrapper}>
-                <div className={`${styles.categoryText} ${categoryClassName}`}>
-                  {category}
-                </div>
-                <div className={styles.dateText}>
-                  {dayjs(date).format("YYYY.MM.DD")}
-                </div>
+            return (
+              <div className={styles.item} key={url}>
                 <Link href={url}>
-                  <a className={styles.heading2Anchor} target="_blank">
-                    <h2 className={styles.heading2}>{title}</h2>
+                  <a target="_blank">
+                    <div className={styles.thumbnailWrapper}>
+                      <Image
+                        alt={title}
+                        layout="fill"
+                        objectFit="cover"
+                        src={image}
+                      />
+                    </div>
                   </a>
                 </Link>
-                {staffs ? (
-                  <ul className={styles.staffList}>
-                    {staffs.map((staff) => (
-                      <li key={staff}>
-                        <Link
-                          href={{
-                            pathname: "/",
-                            query: {
-                              ...routerQuery,
-                              staffs: staff,
-                            },
-                          }}
-                          shallow={true}
-                        >
-                          <a className={styles.staffAnchor}>{staff}</a>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+                <div className={styles.detailWrapper}>
+                  <Link
+                    href={{
+                      pathname: "/",
+                      query: {
+                        ...routerQuery,
+                        category,
+                      },
+                    }}
+                  >
+                    <a
+                      className={`${styles.categoryAnchor} ${categoryClassName}`}
+                    >
+                      {category}
+                    </a>
+                  </Link>
+                  <div className={styles.dateText}>
+                    {dayjs(date).format("YYYY.MM.DD")}
+                  </div>
+                  <Link href={url}>
+                    <a className={styles.heading2Anchor} target="_blank">
+                      <h2 className={styles.heading2}>{title}</h2>
+                    </a>
+                  </Link>
+                  {staffs ? (
+                    <ul className={styles.staffList}>
+                      {staffs.map((staff) => (
+                        <li key={staff}>
+                          <Link
+                            href={{
+                              pathname: "/",
+                              query: {
+                                ...routerQuery,
+                                staffs: staff,
+                              },
+                            }}
+                            shallow={true}
+                          >
+                            <a className={styles.staffAnchor}>{staff}</a>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          );
-        })
+            );
+          })
       ),
-    [data, routerQuery]
+    [data, onigiri, routerQuery]
   );
   const [headerClassName, setHeaderClassName] = useState("");
   const next = useCallback<Props["next"]>(() => {
@@ -339,23 +378,32 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
             }`}
           >
             <div className={styles.filterInner}>
-              <div className={styles.dateRangeWrapper}>
-                <input
-                  {...register("from")}
-                  className={styles.dateInput}
-                  max={dayjs().format("YYYY-MM-DD")}
-                  min={dayjs("2005-10-19").format("YYYY-MM-DD")}
-                  type="date"
-                />
-                〜
-                <input
-                  {...register("until")}
-                  className={styles.dateInput}
-                  max={dayjs().format("YYYY-MM-DD")}
-                  min={dayjs("2005-10-19").format("YYYY-MM-DD")}
-                  type="date"
-                />
-              </div>
+              <label className={styles.label}>
+                期間：
+                <span className={styles.dateRangeWrapper}>
+                  <input
+                    {...register("from")}
+                    className={styles.dateInput}
+                    max={dayjs().format("YYYY-MM-DD")}
+                    min={dayjs("2005-10-19").format("YYYY-MM-DD")}
+                    type="date"
+                  />
+                  〜
+                  <input
+                    {...register("until")}
+                    className={styles.dateInput}
+                    max={dayjs().format("YYYY-MM-DD")}
+                    min={dayjs("2005-10-19").format("YYYY-MM-DD")}
+                    type="date"
+                  />
+                </span>
+              </label>
+              <label className={styles.label}>
+                おにぎりクラブ限定：
+                <NoSSR>
+                  <Toggle defaultChecked={onigiri} onChange={handleChange2} />
+                </NoSSR>
+              </label>
               <button className={styles.searchButton2}>
                 表示する
                 <FaSearch />
@@ -368,6 +416,36 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
         <div className={styles.mainInner}>
           <div className={styles.searchWordWrapper}>
             {typeof total === "number" ? `${total.toLocaleString()} 件` : null}
+            {typeof category === "undefined" ? null : (
+              <div className={styles.categoryWrapper}>
+                {category}
+                <button
+                  className={styles.closeButton}
+                  onClick={(): void => {
+                    router.push(
+                      {
+                        pathname: "/",
+                        query: queryString.stringify(
+                          {
+                            ...routerQuery,
+                            category: undefined,
+                          },
+                          {
+                            skipEmptyString: true,
+                          }
+                        ),
+                      },
+                      undefined,
+                      {
+                        shallow: true,
+                      }
+                    );
+                  }}
+                >
+                  <FaRegTimesCircle />
+                </button>
+              </div>
+            )}
             {typeof staffs === "undefined" ? null : (
               <div className={styles.staffsWrapper}>
                 {staffs}

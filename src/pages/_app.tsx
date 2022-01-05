@@ -1,5 +1,6 @@
 import "../styles/globals.scss";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import "react-toggle/style.css";
 import "ress";
 import type { AppProps } from "next/app";
 import Head from "next/head";

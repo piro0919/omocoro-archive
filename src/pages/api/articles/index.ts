@@ -52,6 +52,8 @@ type Data = {
 };
 
 handler.post(async ({ headers: { authorization } }, res) => {
+  console.log(authorization, process.env.API_SECRET_KEY);
+
   if (authorization !== `Bearer ${process.env.API_SECRET_KEY}`) {
     res.status(401);
     res.end();
