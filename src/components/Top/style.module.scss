@@ -102,7 +102,7 @@
   }
 }
 
-.input {
+.input2 {
   outline: none;
 }
 
@@ -136,6 +136,11 @@
   width: 100%;
 }
 
+.open {
+  height: auto;
+  overflow: visible;
+}
+
 .filterInner {
   align-items: center;
   border-top: 1px solid #fff;
@@ -163,6 +168,43 @@
   gap: 4px;
 }
 
+.input {
+  border-bottom: 1px solid #fff;
+  color: #fff;
+  outline: 0;
+  padding: 2px 4px;
+}
+
+.select {
+  position: relative;
+}
+
+.options {
+  background: #0dbfdb;
+  border: 1px solid #fff;
+  margin: 4px 0;
+  max-height: 220px;
+  overflow: hidden scroll;
+  padding: 4px 8px;
+  position: absolute;
+  right: 0;
+  width: 220px;
+  z-index: 1;
+}
+
+.option {
+  padding: 4px 0;
+}
+
+.optionButton {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template: auto / auto 1fr;
+  text-align: left;
+  width: 100%;
+}
+
 .dateRangeWrapper {
   align-items: center;
   display: flex;
@@ -174,10 +216,6 @@
   color: #fff;
   outline: none;
   padding: 2px 4px;
-}
-
-.open {
-  height: auto;
 }
 
 .searchButton2 {

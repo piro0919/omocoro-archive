@@ -4,17 +4,26 @@ import { GetServerSideProps } from "next";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { setCookie } from "nookies";
 import queryString from "query-string";
 import { useCallback } from "react";
-import { IArticleFields } from "../../@types/generated/contentful";
+import {
+  IArticleFields,
+  IWriterFields,
+} from "../../@types/generated/contentful";
 import Top, { TopProps } from "components/Top";
 
-export type PagesProps = Pick<TopProps, "articles">;
+export type PagesProps = Pick<TopProps, "articles" | "writers">;
 
-function Pages({ articles }: PagesProps): JSX.Element {
+function Pages({ articles, writers }: PagesProps): JSX.Element {
   const { query: routerQuery, ...router } = useRouter();
   const handleSubmit = useCallback<TopProps["onSubmit"]>(
-    ({ from, isNewOrder, query, until }) => {
+    ({ from, isNewOrder, onigiri, query, until, writer }) => {
+      setCookie(null, "onigiri", onigiri.toString(), {
+        maxAge: 30 * 24 * 60 * 60,
+        path: "/",
+      });
+
       router.push(
         {
           pathname: "/",
@@ -22,9 +31,11 @@ function Pages({ articles }: PagesProps): JSX.Element {
             {
               ...routerQuery,
               from,
+              onigiri,
               query,
               until,
               order: isNewOrder ? "-fields.date" : "fields.date",
+              staffs: writer,
             },
             { skipEmptyString: true }
           ),
@@ -69,7 +80,7 @@ function Pages({ articles }: PagesProps): JSX.Element {
           />
         ) : null}
       </Head>
-      <Top articles={articles} onSubmit={handleSubmit} />
+      <Top articles={articles} onSubmit={handleSubmit} writers={writers} />
     </>
   );
 }
@@ -98,10 +109,24 @@ export const getServerSideProps: GetServerSideProps<PagesProps> = async () => {
         })
       )
     );
+  const writers = await client
+    .getEntries<IWriterFields>({
+      content_type: "writer",
+      limit: 1000,
+      order: "fields.name",
+    })
+    .then(({ items }) =>
+      items.map(({ fields: { image, name } }) => ({
+        image,
+        name,
+        value: name,
+      }))
+    );
 
   return {
     props: {
       articles,
+      writers,
     },
   };
 };

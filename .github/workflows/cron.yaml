@@ -11,3 +11,8 @@ jobs:
           curl --request POST \
           --url 'https://omocoro-archive.kk-web.link/api/articles' \
           --header 'Authorization: Bearer ${{ secrets.API_SECRET_KEY }}'
+      - name: Check new writers
+        run: |
+          curl --request POST \
+          --url 'https://omocoro-archive.kk-web.link/api/writers' \
+          --header 'Authorization: Bearer ${{ secrets.API_SECRET_KEY }}'

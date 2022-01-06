@@ -1,23 +1,25 @@
-import NoSSR from "@mpth/react-no-ssr";
 import { useScrollPosition } from "@n8tb1t/use-scroll-position";
 import useSwitch from "@react-hook/switch";
 import { useWindowHeight } from "@react-hook/window-size";
 import axios from "axios";
 import dayjs from "dayjs";
+import Fuse from "fuse.js";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { parseCookies } from "nookies";
 import queryString from "query-string";
 import {
   ChangeEventHandler,
   CSSProperties,
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import useOnclickOutside from "react-cool-onclickoutside";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
   FaCaretDown,
   FaCaretUp,
@@ -27,18 +29,21 @@ import {
 } from "react-icons/fa";
 import InfiniteScroll, { Props } from "react-infinite-scroll-component";
 import Loader from "react-loader-spinner";
-import { useStorageState } from "react-storage-hooks";
+import SelectSearch, { SelectSearchProps } from "react-select-search";
 import Toggle from "react-toggle";
 import useSWRInfinite from "swr/infinite";
 import logo from "./images/logo.png";
 import logo2 from "./images/logo_2.png";
+// eslint-disable-next-line css-modules/no-unused-class
 import styles from "./style.module.scss";
 
 type FieldValues = {
   from: string;
   isNewOrder: boolean;
+  onigiri: boolean;
   query: string;
   until: string;
+  writer: string;
 };
 
 type Article = {
@@ -55,9 +60,14 @@ type Data = {
   total: number;
 };
 
+type Writer = SelectSearchProps["options"][0] & {
+  image: string;
+};
+
 export type TopProps = {
   articles: Article[];
   onSubmit: SubmitHandler<FieldValues>;
+  writers: Writer[];
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,13 +84,15 @@ const getKey = (
   const {
     location: { search },
   } = window;
-  const { category, from, order, query, staffs, until } =
+  const { category, from, onigiri, order, query, staffs, until } =
     queryString.parse(search);
 
   return `/articles?${queryString.stringify(
     {
       query,
       "fields.category": category,
+      "fields.category[ne]":
+        onigiri === "true" ? undefined : "おにぎりクラブ限定",
       "fields.date[gte]":
         typeof from === "string"
           ? dayjs(from).add(-1, "day").format("YYYY-MM-DD")
@@ -97,30 +109,12 @@ const getKey = (
     { skipEmptyString: true }
   )}`;
 };
-const dummyStorage = {
-  getItem: (): null => null,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  removeItem: (): void => {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  setItem: (): void => {},
-};
 
-function Top({ articles, onSubmit }: TopProps): JSX.Element {
+function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
   const { query: routerQuery, ...router } = useRouter();
   const { category, from, order, query, staffs, until } = useMemo(
     () => routerQuery,
     [routerQuery]
-  );
-  const [onigiri, setOnigiri] = useStorageState(
-    typeof window === "undefined" ? dummyStorage : localStorage,
-    "onigiri",
-    true
-  );
-  const handleChange2 = useCallback<ChangeEventHandler<HTMLInputElement>>(
-    ({ currentTarget: { checked } }) => {
-      setOnigiri(checked);
-    },
-    [setOnigiri]
   );
   const { data, isValidating, setSize, size } = useSWRInfinite<Data[]>(
     getKey,
@@ -145,145 +139,153 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
   const items = useMemo(
     () =>
       (data || []).flat().map(({ articles }) =>
-        articles
-          .filter(
-            ({ category }) => onigiri || category !== "おにぎりクラブ限定"
-          )
-          .map(({ category, date, image, staffs, title, url }) => {
-            let categoryClassName = "";
+        articles.map(({ category, date, image, staffs, title, url }) => {
+          let categoryClassName = "";
 
-            switch (category) {
-              case "4コマ": {
-                categoryClassName = styles.fourFrame;
+          switch (category) {
+            case "4コマ": {
+              categoryClassName = styles.fourFrame;
 
-                break;
-              }
-              case "連載":
-              case "ラジオ": {
-                categoryClassName = styles.radio;
-
-                break;
-              }
-              case "動画": {
-                categoryClassName = styles.video;
-
-                break;
-              }
-              case "ジモコロ": {
-                categoryClassName = styles.jimocoro;
-
-                break;
-              }
-              case "おにぎりクラブ限定":
-              case "限定コラム":
-              case "ビジネス会議": {
-                categoryClassName = styles.onigiri;
-
-                break;
-              }
-              case "ブロス記事広告":
-              case "ブロス": {
-                categoryClassName = styles.bros;
-
-                break;
-              }
-              case "特集": {
-                categoryClassName = styles.specialFeature;
-
-                break;
-              }
-              case "記事広告": {
-                categoryClassName = styles.advertorial;
-
-                break;
-              }
-              case "お知らせ": {
-                categoryClassName = styles.notice;
-
-                break;
-              }
-              case "まとめ": {
-                categoryClassName = styles.summary;
-
-                break;
-              }
+              break;
             }
+            case "連載":
+            case "ラジオ": {
+              categoryClassName = styles.radio;
 
-            return (
-              <div className={styles.item} key={url}>
-                <Link href={url}>
-                  <a target="_blank">
-                    <div className={styles.thumbnailWrapper}>
-                      <Image
-                        alt={title}
-                        layout="fill"
-                        objectFit="cover"
-                        src={image}
-                      />
-                    </div>
+              break;
+            }
+            case "動画": {
+              categoryClassName = styles.video;
+
+              break;
+            }
+            case "ジモコロ": {
+              categoryClassName = styles.jimocoro;
+
+              break;
+            }
+            case "おにぎりクラブ限定":
+            case "限定コラム":
+            case "ビジネス会議": {
+              categoryClassName = styles.onigiri;
+
+              break;
+            }
+            case "ブロス記事広告":
+            case "ブロス": {
+              categoryClassName = styles.bros;
+
+              break;
+            }
+            case "特集": {
+              categoryClassName = styles.specialFeature;
+
+              break;
+            }
+            case "記事広告": {
+              categoryClassName = styles.advertorial;
+
+              break;
+            }
+            case "お知らせ": {
+              categoryClassName = styles.notice;
+
+              break;
+            }
+            case "まとめ": {
+              categoryClassName = styles.summary;
+
+              break;
+            }
+          }
+
+          return (
+            <div className={styles.item} key={url}>
+              <Link href={url}>
+                <a target="_blank">
+                  <div className={styles.thumbnailWrapper}>
+                    <Image
+                      alt={title}
+                      layout="fill"
+                      objectFit="cover"
+                      src={image}
+                    />
+                  </div>
+                </a>
+              </Link>
+              <div className={styles.detailWrapper}>
+                <Link
+                  href={{
+                    pathname: "/",
+                    query: {
+                      ...routerQuery,
+                      category,
+                    },
+                  }}
+                >
+                  <a
+                    className={`${styles.categoryAnchor} ${categoryClassName}`}
+                  >
+                    {category}
                   </a>
                 </Link>
-                <div className={styles.detailWrapper}>
-                  <Link
-                    href={{
-                      pathname: "/",
-                      query: {
-                        ...routerQuery,
-                        category,
-                      },
-                    }}
-                  >
-                    <a
-                      className={`${styles.categoryAnchor} ${categoryClassName}`}
-                    >
-                      {category}
-                    </a>
-                  </Link>
-                  <div className={styles.dateText}>
-                    {dayjs(date).format("YYYY.MM.DD")}
-                  </div>
-                  <Link href={url}>
-                    <a className={styles.heading2Anchor} target="_blank">
-                      <h2 className={styles.heading2}>{title}</h2>
-                    </a>
-                  </Link>
-                  {staffs ? (
-                    <ul className={styles.staffList}>
-                      {staffs.map((staff) => (
-                        <li key={staff}>
-                          <Link
-                            href={{
-                              pathname: "/",
-                              query: {
-                                ...routerQuery,
-                                staffs: staff,
-                              },
-                            }}
-                            shallow={true}
-                          >
-                            <a className={styles.staffAnchor}>{staff}</a>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
+                <div className={styles.dateText}>
+                  {dayjs(date).format("YYYY.MM.DD")}
                 </div>
+                <Link href={url}>
+                  <a className={styles.heading2Anchor} target="_blank">
+                    <h2 className={styles.heading2}>{title}</h2>
+                  </a>
+                </Link>
+                {staffs ? (
+                  <ul className={styles.staffList}>
+                    {staffs.map((staff) => (
+                      <li key={staff}>
+                        <Link
+                          href={{
+                            pathname: "/",
+                            query: {
+                              ...routerQuery,
+                              staffs: staff,
+                            },
+                          }}
+                          shallow={true}
+                        >
+                          <a className={styles.staffAnchor}>{staff}</a>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
-            );
-          })
+            </div>
+          );
+        })
       ),
-    [data, onigiri, routerQuery]
+    [data, routerQuery]
   );
   const [headerClassName, setHeaderClassName] = useState("");
   const next = useCallback<Props["next"]>(() => {
     setSize(size + 1);
   }, [setSize, size]);
-  const { handleSubmit, register, reset, setValue, watch } =
+  const { control, handleSubmit, register, reset, setValue, watch } =
     useForm<FieldValues>({
-      defaultValues: { from: "", isNewOrder: true, query: "", until: "" },
+      defaultValues: {
+        from: "",
+        isNewOrder: true,
+        onigiri: true,
+        query: "",
+        until: "",
+        writer: "",
+      },
     });
-  const [isOpenMenu, toggleMenu] = useSwitch(false);
+  const [isOpenMenu, toggleMenu] = useSwitch(true);
+  const [isOpenWriters, toggleWriters] = useSwitch(false);
   const ref = useOnclickOutside(() => {
+    if (isOpenWriters) {
+      return;
+    }
+
     toggleMenu.off();
   });
   const onlyHeight = useWindowHeight();
@@ -318,15 +320,25 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
       "isNewOrder",
       typeof order === "undefined" || order === "-fields.date"
     );
-  }, [order, query, reset, setValue]);
+  }, [order, setValue]);
 
   useEffect(() => {
     setValue("from", typeof from === "string" ? from : "");
-  }, [from, order, query, reset, setValue]);
+  }, [from, setValue]);
 
   useEffect(() => {
     setValue("until", typeof until === "string" ? until : "");
-  }, [order, query, reset, setValue, until]);
+  }, [setValue, until]);
+
+  useEffect(() => {
+    setValue("writer", typeof staffs === "string" ? staffs : "");
+  }, [setValue, staffs]);
+
+  useEffect(() => {
+    const { onigiri } = parseCookies();
+
+    setValue("onigiri", onigiri === "true");
+  }, [setValue]);
 
   useEffect(() => {
     setStyle({ minHeight: `${onlyHeight}px` });
@@ -371,7 +383,7 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
               {isOpenMenu ? <FaCaretUp /> : <FaCaretDown />}
             </button>
             <div className={styles.formInner}>
-              <input {...register("query")} className={styles.input} />
+              <input {...register("query")} className={styles.input2} />
               <button className={styles.searchButton} type="submit">
                 <FaSearch className={styles.searchIcon} />
               </button>
@@ -383,6 +395,82 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
             }`}
           >
             <div className={styles.filterInner}>
+              <label className={styles.label}>
+                ライター：
+                <Controller
+                  control={control}
+                  name="writer"
+                  render={({
+                    field: { onChange, ref, value },
+                  }): JSX.Element => (
+                    <SelectSearch
+                      className={(key): string => styles[key]}
+                      filterOptions={(
+                        options
+                      ): ((value: string) => typeof options) => {
+                        const fuse = new Fuse(options, {
+                          keys: ["value"],
+                          threshold: 0.55,
+                        });
+
+                        return (value): typeof options =>
+                          value ? fuse.search(value) : options;
+                      }}
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      onBlur={(): void => {
+                        setTimeout(() => {
+                          toggleWriters.off();
+                        }, 500);
+                      }}
+                      onChange={onChange}
+                      onFocus={(): void => {
+                        toggleWriters.on();
+                      }}
+                      options={writers}
+                      ref={ref}
+                      renderOption={(
+                        props,
+                        { value },
+                        _,
+                        className
+                      ): JSX.Element => {
+                        const foundWriter = writers.find(
+                          ({ value: writerValue }) => value === writerValue
+                        );
+
+                        if (!foundWriter) {
+                          return <Fragment />;
+                        }
+
+                        const { image, name } = foundWriter;
+
+                        return (
+                          <button
+                            {...(props as unknown)}
+                            className={`${className} ${styles.optionButton}`}
+                            type="button"
+                          >
+                            <Image alt="" height="32" src={image} width="32" />
+                            <div>{name}</div>
+                          </button>
+                        );
+                      }}
+                      search={true}
+                      value={value}
+                    />
+                  )}
+                />
+                <button
+                  className={styles.closeButton}
+                  onClick={(): void => {
+                    setValue("writer", "");
+                  }}
+                  type="button"
+                >
+                  <FaRegTimesCircle />
+                </button>
+              </label>
               <label className={styles.label}>
                 期間：
                 <span className={styles.dateRangeWrapper}>
@@ -405,9 +493,12 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
               </label>
               <label className={styles.label}>
                 おにぎりクラブ限定：
-                <NoSSR>
-                  <Toggle defaultChecked={onigiri} onChange={handleChange2} />
-                </NoSSR>
+                <Toggle
+                  checked={watch("onigiri")}
+                  onChange={({ currentTarget: { checked } }): void => {
+                    setValue("onigiri", checked);
+                  }}
+                />
               </label>
               <button className={styles.searchButton2}>
                 表示する
