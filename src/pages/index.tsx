@@ -4,8 +4,7 @@ import { GetServerSideProps } from "next";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import nookies from "nookies";
-import { setCookie } from "nookies";
+import nookies, { setCookie } from "nookies";
 import queryString from "query-string";
 import { useCallback } from "react";
 import {
