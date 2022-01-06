@@ -84,8 +84,9 @@ const getKey = (
   const {
     location: { search },
   } = window;
-  const { category, from, onigiri, order, query, staffs, until } =
+  const { category, from, order, query, staffs, until } =
     queryString.parse(search);
+  const { onigiri } = parseCookies();
 
   return `/articles?${queryString.stringify(
     {

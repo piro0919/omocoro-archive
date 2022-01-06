@@ -4,6 +4,7 @@ import { GetServerSideProps } from "next";
 import { NextSeo } from "next-seo";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import nookies from "nookies";
 import { setCookie } from "nookies";
 import queryString from "query-string";
 import { useCallback } from "react";
@@ -31,7 +32,6 @@ function Pages({ articles, writers }: PagesProps): JSX.Element {
             {
               ...routerQuery,
               from,
-              onigiri,
               query,
               until,
               order: isNewOrder ? "-fields.date" : "fields.date",
@@ -85,7 +85,10 @@ function Pages({ articles, writers }: PagesProps): JSX.Element {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<PagesProps> = async () => {
+export const getServerSideProps: GetServerSideProps<PagesProps> = async (
+  ctx
+) => {
+  const { onigiri } = nookies.get(ctx);
   const client = contentful.createClient({
     accessToken: process.env.CONTENTFUL_DELIVERY_API_ACCESS_TOKEN || "",
     space: process.env.CONTENTFUL_SPACE_ID || "",
@@ -93,6 +96,8 @@ export const getServerSideProps: GetServerSideProps<PagesProps> = async () => {
   const articles = await client
     .getEntries<IArticleFields>({
       content_type: "article",
+      "fields.category[ne]":
+        onigiri === "true" ? undefined : "おにぎりクラブ限定",
       limit: 24,
       order: "-fields.date",
       skip: 24 * 0,
