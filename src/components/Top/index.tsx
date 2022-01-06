@@ -31,6 +31,7 @@ import { useStorageState } from "react-storage-hooks";
 import Toggle from "react-toggle";
 import useSWRInfinite from "swr/infinite";
 import logo from "./images/logo.png";
+import logo2 from "./images/logo_2.png";
 import styles from "./style.module.scss";
 
 type FieldValues = {
@@ -344,7 +345,11 @@ function Top({ articles, onSubmit }: TopProps): JSX.Element {
             <Link href="/" shallow={true}>
               <a className={styles.logoAnchor}>
                 <h1 className={styles.heading1}>オモコロアーカイブ</h1>
-                <Image alt="オモコロアーカイブ" layout="fill" src={logo} />
+                <Image
+                  alt="オモコロアーカイブ"
+                  layout="fill"
+                  src={dayjs().date() % 2 ? logo2 : logo}
+                />
               </a>
             </Link>
             <label className={styles.sortLabel}>

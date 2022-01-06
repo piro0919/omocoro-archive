@@ -2,8 +2,12 @@ import "../styles/globals.scss";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import "react-toggle/style.css";
 import "ress";
+import dayjs from "dayjs";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import "dayjs/locale/ja";
+
+dayjs().locale("ja");
 
 if (process.env.NODE_ENV === "development") {
   require("../styles/show-breakpoints.scss");

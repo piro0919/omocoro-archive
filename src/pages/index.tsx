@@ -1,6 +1,8 @@
 import * as contentful from "contentful";
+import dayjs from "dayjs";
 import { GetServerSideProps } from "next";
 import { NextSeo } from "next-seo";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import queryString from "query-string";
 import { useCallback } from "react";
@@ -59,6 +61,14 @@ function Pages({ articles }: PagesProps): JSX.Element {
           cardType: "summary_large_image",
         }}
       />
+      <Head>
+        {dayjs().date() % 2 ? (
+          <link
+            href="https://omocoro-archive.kk-web.link/favicon2.ico"
+            rel="icon"
+          />
+        ) : null}
+      </Head>
       <Top articles={articles} onSubmit={handleSubmit} />
     </>
   );
