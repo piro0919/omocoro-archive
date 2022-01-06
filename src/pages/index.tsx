@@ -1,5 +1,5 @@
 import * as contentful from "contentful";
-import { GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
 import { NextSeo } from "next-seo";
 import { useRouter } from "next/router";
 import queryString from "query-string";
@@ -64,7 +64,7 @@ function Pages({ articles }: PagesProps): JSX.Element {
   );
 }
 
-export const getStaticProps: GetStaticProps<PagesProps> = async () => {
+export const getServerSideProps: GetServerSideProps<PagesProps> = async () => {
   const client = contentful.createClient({
     accessToken: process.env.CONTENTFUL_DELIVERY_API_ACCESS_TOKEN || "",
     space: process.env.CONTENTFUL_SPACE_ID || "",
@@ -93,7 +93,6 @@ export const getStaticProps: GetStaticProps<PagesProps> = async () => {
     props: {
       articles,
     },
-    revalidate: 60 * 60 * 12,
   };
 };
 
