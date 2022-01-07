@@ -660,7 +660,7 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
         </div>
       </main>
       <footer className={styles.footer}>
-        <div className={styles.footerInner}>&copy; 2021 オモコロアーカイブ</div>
+        <div className={styles.footerInner}>&copy; 2022 オモコロアーカイブ</div>
       </footer>
     </div>
   );
