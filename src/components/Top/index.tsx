@@ -288,7 +288,7 @@ function Top({
         writer: "",
       },
     });
-  const [isOpenMenu, toggleMenu] = useSwitch(true);
+  const [isOpenMenu, toggleMenu] = useSwitch(false);
   const [isOpenWriters, toggleWriters] = useSwitch(false);
   const ref = useOnclickOutside(() => {
     if (isOpenWriters) {
