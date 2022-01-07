@@ -1,13 +1,13 @@
 import { useScrollPosition } from "@n8tb1t/use-scroll-position";
 import useSwitch from "@react-hook/switch";
-import { useWindowHeight } from "@react-hook/window-size";
+import { useWindowSize } from "@react-hook/window-size";
 import axios from "axios";
 import dayjs from "dayjs";
 import Fuse from "fuse.js";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { parseCookies } from "nookies";
+import { destroyCookie, parseCookies, setCookie } from "nookies";
 import queryString from "query-string";
 import {
   ChangeEventHandler,
@@ -23,6 +23,8 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
   FaCaretDown,
   FaCaretUp,
+  FaChevronLeft,
+  FaChevronRight,
   FaLongArrowAltDown,
   FaRegTimesCircle,
   FaSearch,
@@ -66,6 +68,7 @@ type Writer = SelectSearchProps["options"][0] & {
 
 export type TopProps = {
   articles: Article[];
+  lineIndex?: number;
   onSubmit: SubmitHandler<FieldValues>;
   writers: Writer[];
 };
@@ -111,7 +114,12 @@ const getKey = (
   )}`;
 };
 
-function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
+function Top({
+  articles,
+  lineIndex: propLineIndex,
+  onSubmit,
+  writers,
+}: TopProps): JSX.Element {
   const { query: routerQuery, ...router } = useRouter();
   const { category, from, order, query, staffs, until } = useMemo(
     () => routerQuery,
@@ -289,7 +297,7 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
 
     toggleMenu.off();
   });
-  const onlyHeight = useWindowHeight();
+  const [width, height] = useWindowSize();
   const [style, setStyle] = useState<CSSProperties>();
   const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
     ({ currentTarget: { checked } }) => {
@@ -299,6 +307,10 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
     },
     [handleSubmit, onSubmit, setValue]
   );
+  console.log(propLineIndex);
+  const [lineIndex, setLineIndex] = useState(propLineIndex || 0);
+  const lines = useMemo(() => ["自動", 1, 2, 3, 4, 6], []);
+  const line = useMemo(() => lines[lineIndex], [lineIndex, lines]);
 
   useScrollPosition(({ currPos: { y } }) => {
     setHeaderClassName(y < 0 ? styles.narrowHeader : "");
@@ -342,13 +354,30 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
   }, [setValue]);
 
   useEffect(() => {
-    setStyle({ minHeight: `${onlyHeight}px` });
-  }, [onlyHeight]);
+    setStyle({ minHeight: `${height}px` });
+  }, [height]);
 
   useEffect(() => {
     toggleMenu.off();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routerQuery]);
+
+  useEffect(() => {
+    setCookie(null, "lineIndex", lineIndex.toString(), {
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+    });
+  }, [lineIndex]);
+
+  useEffect(() => {
+    if (width >= 740) {
+      return;
+    }
+
+    destroyCookie(null, "lineIndex");
+
+    setLineIndex(0);
+  }, [width]);
 
   return (
     <div className={styles.wrapper} style={style}>
@@ -511,105 +540,14 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
       </header>
       <main>
         <div className={styles.mainInner}>
-          <div className={styles.searchWordWrapper}>
-            {typeof total === "number" ? `${total.toLocaleString()} 件` : null}
-            {typeof category === "undefined" ? null : (
-              <div className={styles.categoryWrapper}>
-                {category}
-                <button
-                  className={styles.closeButton}
-                  onClick={(): void => {
-                    router.push(
-                      {
-                        pathname: "/",
-                        query: queryString.stringify(
-                          {
-                            ...routerQuery,
-                            category: undefined,
-                          },
-                          {
-                            skipEmptyString: true,
-                          }
-                        ),
-                      },
-                      undefined,
-                      {
-                        shallow: true,
-                      }
-                    );
-                  }}
-                >
-                  <FaRegTimesCircle />
-                </button>
-              </div>
-            )}
-            {typeof staffs === "undefined" ? null : (
-              <div className={styles.staffsWrapper}>
-                {staffs}
-                <button
-                  className={styles.closeButton}
-                  onClick={(): void => {
-                    router.push(
-                      {
-                        pathname: "/",
-                        query: queryString.stringify(
-                          {
-                            ...routerQuery,
-                            staffs: undefined,
-                          },
-                          {
-                            skipEmptyString: true,
-                          }
-                        ),
-                      },
-                      undefined,
-                      {
-                        shallow: true,
-                      }
-                    );
-                  }}
-                >
-                  <FaRegTimesCircle />
-                </button>
-              </div>
-            )}
-            <div className={styles.dateRangeWrapper2}>
-              {typeof from === "string" ? (
-                <div className={styles.dateWrapper}>
-                  {dayjs(from).format("YYYY/MM/DD")}
-                  <button
-                    className={styles.closeButton}
-                    onClick={(): void => {
-                      router.push(
-                        {
-                          pathname: "/",
-                          query: queryString.stringify(
-                            {
-                              ...routerQuery,
-                              from: undefined,
-                            },
-                            {
-                              skipEmptyString: true,
-                            }
-                          ),
-                        },
-                        undefined,
-                        {
-                          shallow: true,
-                        }
-                      );
-                    }}
-                  >
-                    <FaRegTimesCircle />
-                  </button>
-                </div>
-              ) : null}
-              {typeof from === "string" || typeof until === "string"
-                ? "〜"
+          <div className={styles.searchWrapper}>
+            <div className={styles.searchWordWrapper}>
+              {typeof total === "number"
+                ? `${total.toLocaleString()} 件`
                 : null}
-              {typeof until === "string" ? (
-                <div className={styles.dateWrapper}>
-                  {dayjs(until).format("YYYY/MM/DD")}
+              {typeof category === "undefined" ? null : (
+                <div className={styles.categoryWrapper}>
+                  {category}
                   <button
                     className={styles.closeButton}
                     onClick={(): void => {
@@ -619,7 +557,7 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
                           query: queryString.stringify(
                             {
                               ...routerQuery,
-                              until: undefined,
+                              category: undefined,
                             },
                             {
                               skipEmptyString: true,
@@ -636,12 +574,133 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
                     <FaRegTimesCircle />
                   </button>
                 </div>
-              ) : null}
+              )}
+              {typeof staffs === "undefined" ? null : (
+                <div className={styles.staffsWrapper}>
+                  {staffs}
+                  <button
+                    className={styles.closeButton}
+                    onClick={(): void => {
+                      router.push(
+                        {
+                          pathname: "/",
+                          query: queryString.stringify(
+                            {
+                              ...routerQuery,
+                              staffs: undefined,
+                            },
+                            {
+                              skipEmptyString: true,
+                            }
+                          ),
+                        },
+                        undefined,
+                        {
+                          shallow: true,
+                        }
+                      );
+                    }}
+                  >
+                    <FaRegTimesCircle />
+                  </button>
+                </div>
+              )}
+              <div className={styles.dateRangeWrapper2}>
+                {typeof from === "string" ? (
+                  <div className={styles.dateWrapper}>
+                    {dayjs(from).format("YYYY/MM/DD")}
+                    <button
+                      className={styles.closeButton}
+                      onClick={(): void => {
+                        router.push(
+                          {
+                            pathname: "/",
+                            query: queryString.stringify(
+                              {
+                                ...routerQuery,
+                                from: undefined,
+                              },
+                              {
+                                skipEmptyString: true,
+                              }
+                            ),
+                          },
+                          undefined,
+                          {
+                            shallow: true,
+                          }
+                        );
+                      }}
+                    >
+                      <FaRegTimesCircle />
+                    </button>
+                  </div>
+                ) : null}
+                {typeof from === "string" || typeof until === "string"
+                  ? "〜"
+                  : null}
+                {typeof until === "string" ? (
+                  <div className={styles.dateWrapper}>
+                    {dayjs(until).format("YYYY/MM/DD")}
+                    <button
+                      className={styles.closeButton}
+                      onClick={(): void => {
+                        router.push(
+                          {
+                            pathname: "/",
+                            query: queryString.stringify(
+                              {
+                                ...routerQuery,
+                                until: undefined,
+                              },
+                              {
+                                skipEmptyString: true,
+                              }
+                            ),
+                          },
+                          undefined,
+                          {
+                            shallow: true,
+                          }
+                        );
+                      }}
+                    >
+                      <FaRegTimesCircle />
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
+            {width >= 740 ? (
+              <div className={styles.showWrapper}>
+                表示：
+                <div className={styles.showInner}>
+                  <button
+                    className={styles.showButton}
+                    disabled={lineIndex === 0}
+                    onClick={(): void => {
+                      setLineIndex((prevLineIndex) => prevLineIndex - 1);
+                    }}
+                  >
+                    <FaChevronLeft />
+                  </button>
+                  <div>{typeof line === "number" ? `${line}列` : line}</div>
+                  <button
+                    className={styles.showButton}
+                    disabled={lineIndex === lines.length - 1}
+                    onClick={(): void => {
+                      setLineIndex((prevLineIndex) => prevLineIndex + 1);
+                    }}
+                  >
+                    <FaChevronRight />
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
           {items.length ? (
             <InfiniteScroll
-              className={styles.list}
+              className={`${styles.list} ${line === 1 ? styles.oneColumn : ""}`}
               dataLength={items.length}
               hasMore={!!total && total > items.length}
               key={queryString.stringify(routerQuery)}
@@ -651,6 +710,14 @@ function Top({ articles, onSubmit, writers }: TopProps): JSX.Element {
                 </div>
               }
               next={next}
+              style={{
+                gap:
+                  typeof line === "number"
+                    ? `${line === 1 ? 16 : 24}px`
+                    : undefined,
+                gridTemplateColumns:
+                  typeof line === "number" ? `repeat(${line}, 1fr)` : undefined,
+              }}
             >
               {items}
             </InfiniteScroll>

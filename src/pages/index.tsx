@@ -13,9 +13,11 @@ import {
 } from "../../@types/generated/contentful";
 import Top, { TopProps } from "components/Top";
 
-export type PagesProps = Pick<TopProps, "articles" | "writers">;
+export type PagesProps = Pick<TopProps, "articles" | "writers"> & {
+  lineIndex: NonNullable<TopProps["lineIndex"]> | null;
+};
 
-function Pages({ articles, writers }: PagesProps): JSX.Element {
+function Pages({ articles, lineIndex, writers }: PagesProps): JSX.Element {
   const { query: routerQuery, ...router } = useRouter();
   const handleSubmit = useCallback<TopProps["onSubmit"]>(
     ({ from, isNewOrder, onigiri, query, until, writer }) => {
@@ -94,7 +96,12 @@ function Pages({ articles, writers }: PagesProps): JSX.Element {
           />
         ) : null}
       </Head>
-      <Top articles={articles} onSubmit={handleSubmit} writers={writers} />
+      <Top
+        articles={articles}
+        lineIndex={typeof lineIndex === "number" ? lineIndex : undefined}
+        onSubmit={handleSubmit}
+        writers={writers}
+      />
     </>
   );
 }
@@ -102,7 +109,7 @@ function Pages({ articles, writers }: PagesProps): JSX.Element {
 export const getServerSideProps: GetServerSideProps<PagesProps> = async (
   ctx
 ) => {
-  const { onigiri } = nookies.get(ctx);
+  const { lineIndex, onigiri } = nookies.get(ctx);
   const client = contentful.createClient({
     accessToken: process.env.CONTENTFUL_DELIVERY_API_ACCESS_TOKEN || "",
     space: process.env.CONTENTFUL_SPACE_ID || "",
@@ -146,6 +153,7 @@ export const getServerSideProps: GetServerSideProps<PagesProps> = async (
     props: {
       articles,
       writers,
+      lineIndex: lineIndex ? parseInt(lineIndex, 10) : null,
     },
   };
 };

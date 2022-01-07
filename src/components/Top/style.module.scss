@@ -239,16 +239,24 @@
   }
 }
 
-.searchWordWrapper {
-  color: #72696a;
-  display: flex;
+.searchWrapper {
+  align-items: center;
+  display: grid;
   gap: 16px;
+  grid-template: auto / 1fr auto;
   @include mq($until: tablet) {
     padding-bottom: 8px;
   }
   @include mq($from: tablet) {
     padding-bottom: 24px;
   }
+}
+
+.searchWordWrapper {
+  color: #72696a;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
 }
 
 .dateRangeWrapper2 {
@@ -267,6 +275,25 @@
 
 .closeButton {
   display: flex;
+}
+
+.showWrapper {
+  align-items: center;
+  display: flex;
+}
+
+.showInner {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.showButton {
+  display: flex;
+}
+
+.showButton:disabled {
+  opacity: 0.5;
 }
 
 .list {
@@ -312,6 +339,11 @@
     flex-direction: column;
     padding: 0 0 8px;
   }
+}
+
+.oneColumn .item {
+  display: grid;
+  grid-template: auto / 120px 1fr;
 }
 
 .item::after {
