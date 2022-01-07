@@ -49,6 +49,21 @@ function Pages({ articles, writers }: PagesProps): JSX.Element {
   return (
     <>
       <NextSeo
+        additionalLinkTags={[
+          {
+            href: "https://omocoro-archive.kk-web.link/favicon.ico",
+            rel: "icon",
+          },
+          {
+            href: "https://omocoro-archive.kk-web.link/icon-512x512.png",
+            rel: "apple-touch-icon",
+            sizes: "512x512",
+          },
+          {
+            href: "/manifest.json",
+            rel: "manifest",
+          },
+        ]}
         canonical="https://omocoro-archive.kk-web.link/"
         description="オモコロの非公式アーカイブサイトです"
         openGraph={{
