@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useScrollPosition } from "@n8tb1t/use-scroll-position";
 import useSwitch from "@react-hook/switch";
 import { useWindowSize } from "@react-hook/window-size";
@@ -213,12 +214,7 @@ function Top({
               <Link href={url}>
                 <a target="_blank">
                   <div className={styles.thumbnailWrapper}>
-                    <Image
-                      alt={title}
-                      layout="fill"
-                      objectFit="cover"
-                      src={image}
-                    />
+                    <img alt={title} className={styles.img} src={image} />
                   </div>
                 </a>
               </Link>
