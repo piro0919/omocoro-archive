@@ -546,6 +546,36 @@ function Top({
               {typeof total === "number"
                 ? `${total.toLocaleString()} 件`
                 : null}
+              {typeof query === "undefined" ? null : (
+                <div className={styles.queryWrapper}>
+                  {query}
+                  <button
+                    className={styles.closeButton}
+                    onClick={(): void => {
+                      router.push(
+                        {
+                          pathname: "/",
+                          query: queryString.stringify(
+                            {
+                              ...routerQuery,
+                              query: undefined,
+                            },
+                            {
+                              skipEmptyString: true,
+                            }
+                          ),
+                        },
+                        undefined,
+                        {
+                          shallow: true,
+                        }
+                      );
+                    }}
+                  >
+                    <FaRegTimesCircle />
+                  </button>
+                </div>
+              )}
               {typeof category === "undefined" ? null : (
                 <div className={styles.categoryWrapper}>
                   {category}
