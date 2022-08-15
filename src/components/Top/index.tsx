@@ -217,6 +217,7 @@ function Top({
                       alt={title}
                       layout="fill"
                       objectFit="cover"
+                      quality={100}
                       src={image}
                       unoptimized={true}
                     />
@@ -391,7 +392,9 @@ function Top({
                 <Image
                   alt="オモコロアーカイブ"
                   layout="fill"
+                  quality={100}
                   src={dayjs().date() % 2 ? logo2 : logo}
+                  unoptimized={true}
                 />
               </a>
             </Link>
@@ -482,7 +485,14 @@ function Top({
                             className={`${className} ${styles.optionButton}`}
                             type="button"
                           >
-                            <Image alt="" height="32" src={image} width="32" />
+                            <Image
+                              alt=""
+                              height="32"
+                              quality={100}
+                              src={image}
+                              unoptimized={true}
+                              width="32"
+                            />
                             <div>{name}</div>
                           </button>
                         );
