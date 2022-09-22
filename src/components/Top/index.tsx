@@ -163,6 +163,7 @@ function Top({
 
               break;
             }
+            case "オモコロチャンネル":
             case "動画": {
               categoryClassName = styles.video;
 
@@ -170,6 +171,11 @@ function Top({
             }
             case "ジモコロ": {
               categoryClassName = styles.jimocoro;
+
+              break;
+            }
+            case "ふっくらすずめクラブ": {
+              categoryClassName = styles.suzume;
 
               break;
             }
@@ -309,7 +315,6 @@ function Top({
     },
     [handleSubmit, onSubmit, setValue]
   );
-  console.log(propLineIndex);
   const [lineIndex, setLineIndex] = useState(propLineIndex || 0);
   const lines = useMemo(() => ["自動", 1, 2, 3, 4, 6], []);
   const line = useMemo(() => lines[lineIndex], [lineIndex, lines]);
