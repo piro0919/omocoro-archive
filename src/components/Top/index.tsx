@@ -44,6 +44,7 @@ type FieldValues = {
   isNewOrder: boolean;
   onigiri: boolean;
   query: string;
+  radio: boolean;
   until: string;
   writer: string;
 };
@@ -89,14 +90,16 @@ const getKey = (
   } = window;
   const { category, from, order, query, staffs, until } =
     queryString.parse(search);
-  const { onigiri } = parseCookies();
+  const { onigiri, radio } = parseCookies();
 
   return `/articles?${queryString.stringify(
     {
       query,
       "fields.category": category,
-      "fields.category[ne]":
+      "fields.category[nin]": [
         onigiri === "true" ? undefined : "おにぎりクラブ限定",
+        radio === "true" ? undefined : "ラジオ",
+      ].join(","),
       "fields.date[gte]":
         typeof from === "string"
           ? dayjs(from).add(-1, "day").format("YYYY-MM-DD")
@@ -292,6 +295,7 @@ function Top({
         isNewOrder: true,
         onigiri: true,
         query: "",
+        radio: true,
         until: "",
         writer: "",
       },
@@ -355,9 +359,10 @@ function Top({
   }, [setValue, staffs]);
 
   useEffect(() => {
-    const { onigiri } = parseCookies();
+    const { onigiri, radio } = parseCookies();
 
     setValue("onigiri", onigiri === "true");
+    setValue("radio", radio === "true");
   }, [setValue]);
 
   useEffect(() => {
@@ -543,6 +548,15 @@ function Top({
                   checked={watch("onigiri")}
                   onChange={({ currentTarget: { checked } }): void => {
                     setValue("onigiri", checked);
+                  }}
+                />
+              </label>
+              <label className={styles.label}>
+                ラジオ：
+                <Toggle
+                  checked={watch("radio")}
+                  onChange={({ currentTarget: { checked } }): void => {
+                    setValue("radio", checked);
                   }}
                 />
               </label>
