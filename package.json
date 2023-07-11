@@ -33,7 +33,7 @@
     "@types/node": "17.0.5",
     "@types/react": "17.0.38",
     "@types/react-toggle": "4.0.3",
-    "@typescript-eslint/eslint-plugin": "5.5.0",
+    "@typescript-eslint/eslint-plugin": "5.62.0",
     "contentful-typescript-codegen": "3.2.3",
     "dotenv": "10.0.0",
     "eslint": "7.32.0",
