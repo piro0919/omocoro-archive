@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "17.0.5",
-    "@types/react": "17.0.38",
+    "@types/react": "17.0.83",
     "@types/react-toggle": "4.0.3",
     "@typescript-eslint/eslint-plugin": "5.5.0",
     "contentful-typescript-codegen": "3.2.3",
