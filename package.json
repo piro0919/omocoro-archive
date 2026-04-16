@@ -76,7 +76,7 @@
     "next-sitemap": "4.2.3",
     "prettier": "3.4.2",
     "serwist": "9.0.11",
-    "stylelint": "16.12.0",
+    "stylelint": "17.8.0",
     "stylelint-config-css-modules": "4.4.0",
     "stylelint-config-recommended": "14.0.1",
     "stylelint-css-modules-no-global-scoped-selector": "1.0.2",
@@ -98,10 +98,10 @@
       "react-dom": "^19.0.0"
     },
     "stylelint-css-modules-no-global-scoped-selector": {
-      "stylelint": "16.12.0"
+      "stylelint": "17.8.0"
     },
     "stylelint-no-unused-selectors": {
-      "stylelint": "16.12.0"
+      "stylelint": "17.8.0"
     },
     "usehooks-ts": {
       "react": "^19.0.0",
