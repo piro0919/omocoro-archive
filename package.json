@@ -67,7 +67,7 @@
     "eslint-plugin-ext": "0.1.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-no-unsanitized": "4.1.2",
-    "eslint-plugin-perfectionist": "4.6.0",
+    "eslint-plugin-perfectionist": "5.9.0",
     "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-unused-imports": "4.1.4",
     "eslint-plugin-write-good-comments": "0.2.0",
