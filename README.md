@@ -2,7 +2,7 @@
 
 > Unofficial archive site for [Omocoro](https://omocoro.jp/). Search and browse articles as a PWA.
 
-[🔗 Live Site](https://omocoro-archive2.vercel.app)
+[🔗 Live Site](https://omocoro-archive.kkweb.io/)
 
 ## ✨ Features
 
