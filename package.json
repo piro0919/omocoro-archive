@@ -90,12 +90,12 @@
   "name": "omocoro-archive",
   "overrides": {
     "react-loader-spinner": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
+      "react": "^19.2.5",
+      "react-dom": "^19.2.5"
     },
     "react-toggle": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
+      "react": "^19.2.5",
+      "react-dom": "^19.2.5"
     },
     "stylelint-css-modules-no-global-scoped-selector": {
       "stylelint": "16.12.0"
@@ -104,8 +104,8 @@
       "stylelint": "16.12.0"
     },
     "usehooks-ts": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
+      "react": "^19.2.5",
+      "react-dom": "^19.2.5"
     }
   },
   "private": true,
