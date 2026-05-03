@@ -24,6 +24,9 @@ model Article {
 
   category Category @relation(fields: [categoryId], references: [id])
   writers  Writer[]
+
+  @@index([publishedAt])
+  @@index([categoryId])
 }
 
 // カテゴリモデル

@@ -12,7 +12,6 @@ import LinesEllipsis from "react-lines-ellipsis";
 import { TailSpin } from "react-loader-spinner";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
-import uniqueObjects from "unique-objects";
 import { useWindowSize } from "usehooks-ts";
 import styles from "./style.module.css";
 
@@ -134,6 +133,7 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
     isLoading,
     isValidating,
     setSize,
+    size,
   } = useSWRInfinite<(Article & { category: Category; writers: Writer[] })[]>(
     getArticlesKey({
       category,
@@ -164,10 +164,12 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
     }),
   );
   const { height, width } = useWindowSize();
+  const isLoadingMore =
+    isLoading || (size > 0 && articles[size - 1] === undefined);
 
   useBottomScrollListener(
     () => {
-      if (isValidating) {
+      if (isLoadingMore) {
         return;
       }
 
@@ -240,10 +242,7 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
       </div>
       <ul className={styles.list}>
         {(articles.flat().length > 0 || !isValidating
-          ? (uniqueObjects(articles.flat(), ["url"]) as (Article & {
-              category: Category;
-              writers: Writer[];
-            })[])
+          ? articles.flat()
           : initialArticles
         ).map((article) => (
           <li className={styles.item} key={article.id}>
