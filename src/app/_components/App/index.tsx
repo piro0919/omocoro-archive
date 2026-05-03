@@ -170,20 +170,17 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
   const reachedEnd =
     lastPage !== undefined && (lastPage.length === 0 || lastPage.length < 24);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const loadingRef = useRef(isLoadingMore);
-
-  loadingRef.current = isLoadingMore;
 
   useEffect(() => {
     const node = sentinelRef.current;
 
-    if (!node || reachedEnd) {
+    if (!node || reachedEnd || isLoadingMore) {
       return;
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting) && !loadingRef.current) {
+        if (entries.some((e) => e.isIntersecting)) {
           setSize((prev) => prev + 1);
         }
       },
@@ -195,7 +192,7 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
     return (): void => {
       observer.disconnect();
     };
-  }, [reachedEnd, setSize]);
+  }, [isLoadingMore, reachedEnd, setSize]);
 
   return (
     <div className={styles.container}>
