@@ -14,7 +14,11 @@ const nextConfig: NextConfig = withSerwist({
     typedRoutes: true,
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      { hostname: "omocoro.jp", protocol: "https" },
+      { hostname: "cdn.omocoro.jp", protocol: "https" },
+      { hostname: "img.omocoro.jp", protocol: "https" },
+    ],
   },
   reactStrictMode: false,
 });

@@ -94,7 +94,7 @@ export default function Writer({
                     fill={true}
                     loading="lazy"
                     referrerPolicy="no-referrer"
-                    src={`/api/proxy?url=${encodeURIComponent(writer.avatarUrl)}`}
+                    src={writer.avatarUrl}
                   />
                 </div>
                 <div className={styles.name}>{writer.name}</div>

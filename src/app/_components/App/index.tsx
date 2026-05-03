@@ -271,7 +271,7 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
                   alt={article.title}
                   className={styles.image}
                   fill={true}
-                  src={`/api/proxy?url=${encodeURIComponent(article.thumbnail)}`}
+                  src={article.thumbnail}
                 />
               </div>
               <div className={styles.detail}>
