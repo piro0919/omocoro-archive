@@ -42,26 +42,14 @@ function extractArticleData(
       return null;
     }
 
-    // 日付文字列がない場合はスキップ
     if (!publishedAtStr) {
       console.log(`Skipping article without date: ${title}`);
 
       return null;
     }
 
-    let publishedAt: Date | null = null;
-
-    if (publishedAtStr) {
-      try {
-        publishedAt = new Date(publishedAtStr);
-
-        if (isNaN(publishedAt.getTime())) {
-          publishedAt = null;
-        }
-      } catch {
-        console.log(`Invalid date for article: ${title}`);
-      }
-    }
+    const parsed = new Date(publishedAtStr);
+    const publishedAt = Number.isNaN(parsed.getTime()) ? null : parsed;
 
     return { category, publishedAt, thumbnail, title, url };
   } catch (error) {
@@ -98,15 +86,16 @@ async function processWriters(
       const profileUrl = $staff.attr("href") ?? "";
 
       try {
-        const newWriter = await prismaClient.writer.create({
-          data: { avatarUrl, name, profileUrl },
+        const writer = await prismaClient.writer.upsert({
+          create: { avatarUrl, name, profileUrl },
+          update: {},
+          where: { name },
         });
 
-        writerIds.push(newWriter.id);
-        existingWriters.push(newWriter);
-        console.log(`New writer created: ${name}`);
+        writerIds.push(writer.id);
+        existingWriters.push(writer);
       } catch (error) {
-        console.error(`Failed to create writer: ${name}`, error);
+        console.error(`Failed to upsert writer: ${name}`, error);
       }
     }
   } catch (error) {
@@ -175,49 +164,44 @@ async function processArticle(
 async function fetchAndProcessPage(
   url: string,
   writers: Writer[],
-): Promise<number> {
+): Promise<{ articleCount: number; failedArticles: number }> {
   let failedArticles = 0;
 
-  try {
-    const response = await fetch(url);
+  const response = await fetch(url);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
 
-    const html = await response.text();
-    const $ = cheerio.load(html);
-    const articleElements =
-      url === BASE_URL
-        ? $(".new-entries .box:not(.ad)")
-        : $(".category-inner .box:not(.ad)");
+  const html = await response.text();
+  const $ = cheerio.load(html);
+  const articleElements =
+    url === BASE_URL
+      ? $(".new-entries .box:not(.ad)")
+      : $(".category-inner .box:not(.ad)");
 
-    console.log(`Found ${articleElements.length} articles on ${url}`);
+  console.log(`Found ${articleElements.length} articles on ${url}`);
 
-    for (const articleElement of articleElements) {
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          await processArticle($, articleElement, writers);
+  for (const articleElement of articleElements) {
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        await processArticle($, articleElement, writers);
 
-          break;
-        } catch {
-          if (attempt === MAX_RETRIES) {
-            failedArticles++;
-            console.log(
-              `Failed to process article after ${MAX_RETRIES} attempts`,
-            );
-          } else {
-            await sleep(RETRY_DELAY);
-          }
+        break;
+      } catch {
+        if (attempt === MAX_RETRIES) {
+          failedArticles++;
+          console.log(
+            `Failed to process article after ${MAX_RETRIES} attempts`,
+          );
+        } else {
+          await sleep(RETRY_DELAY);
         }
       }
     }
-  } catch (error) {
-    console.error(`Error fetching page ${url}:`, error);
-    throw error;
   }
 
-  return failedArticles;
+  return { articleCount: articleElements.length, failedArticles };
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -246,14 +230,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     let totalFailedArticles = 0;
 
-    // メインページの処理
     console.log("Processing main page");
-    totalFailedArticles += await fetchAndProcessPage(BASE_URL, writers);
+
+    const main = await fetchAndProcessPage(BASE_URL, writers);
+
+    totalFailedArticles += main.failedArticles;
     await sleep(PAGE_DELAY);
 
-    // 続きのページを処理
     let page = 1;
-    let consecutiveEmptyPages = 0;
 
     while (true) {
       try {
@@ -261,21 +245,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
         console.log(`Processing page ${page}`);
 
-        const pageFailures = await fetchAndProcessPage(pageUrl, writers);
+        const result = await fetchAndProcessPage(pageUrl, writers);
 
-        if (pageFailures === 0 && page > 1) {
-          consecutiveEmptyPages++;
+        totalFailedArticles += result.failedArticles;
 
-          if (consecutiveEmptyPages >= 2) {
-            console.log("Finished - found 2 consecutive empty pages");
+        if (result.articleCount === 0) {
+          console.log(`Finished - page ${page} had no articles`);
 
-            break;
-          }
-        } else {
-          consecutiveEmptyPages = 0;
+          break;
         }
 
-        totalFailedArticles += pageFailures;
         page++;
         await sleep(PAGE_DELAY);
       } catch (error) {
