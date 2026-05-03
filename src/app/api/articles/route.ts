@@ -31,5 +31,9 @@ export async function GET(
     where: buildArticleWhere(params),
   });
 
-  return NextResponse.json(articles);
+  return NextResponse.json(articles, {
+    headers: {
+      "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600",
+    },
+  });
 }

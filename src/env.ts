@@ -6,6 +6,8 @@ const env = createEnv({
   experimental__runtimeEnv: {},
   server: {
     CRON_SECRET: z.string().min(1),
+    POSTGRES_PRISMA_URL: z.string().url(),
+    POSTGRES_URL_NON_POOLING: z.string().url(),
   },
 });
 

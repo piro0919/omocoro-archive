@@ -8,5 +8,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<number>> {
   const where = buildArticleWhere(readFilterParams(searchParams));
   const count = await prismaClient.article.count({ where });
 
-  return NextResponse.json(count);
+  return NextResponse.json(count, {
+    headers: {
+      "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600",
+    },
+  });
 }

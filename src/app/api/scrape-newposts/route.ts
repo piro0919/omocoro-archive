@@ -1,10 +1,11 @@
 import env from "@/env";
-import { prismaDirectClient as prismaClient } from "@/lib/prisma-client";
+import { getPrismaDirectClient } from "@/lib/prisma-client";
 import * as cheerio from "cheerio";
 import { type Element } from "domhandler";
 import { type NextRequest, NextResponse } from "next/server";
 import sleep from "sleep-promise";
 
+const prisma = getPrismaDirectClient();
 const RETRY_DELAY = 2000;
 const PAGE_DELAY = 1000;
 const MAX_RETRIES = 5;
@@ -86,7 +87,7 @@ async function processWriters(
       const profileUrl = $staff.attr("href") ?? "";
 
       try {
-        const writer = await prismaClient.writer.upsert({
+        const writer = await prisma.writer.upsert({
           create: { avatarUrl, name, profileUrl },
           update: {},
           where: { name },
@@ -123,7 +124,7 @@ async function processArticle(
     const writerIds = await processWriters($, $article, writers);
 
     // カテゴリーの作成と記事の作成/更新を1つのトランザクションで実行
-    await prismaClient.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // カテゴリーの作成または取得
       const category = await tx.category.upsert({
         create: { name: articleData.category },
@@ -224,7 +225,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const writers = await prismaClient.writer.findMany();
+    const writers = await prisma.writer.findMany();
 
     console.log(`Found ${writers.length} existing writers`);
 
