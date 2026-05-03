@@ -32,7 +32,7 @@ export async function GET(
       writers: true,
     },
     orderBy: {
-      publishedAt: order as "asc" | "desc",
+      publishedAt: (order as "asc" | "desc") ?? "desc",
     },
     skip: page ? parseInt(page) * parseInt(limit || "24") : 0,
     take: parseInt(limit || "24"),
