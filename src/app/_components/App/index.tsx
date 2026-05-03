@@ -6,8 +6,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import queryString from "query-string";
-import React from "react";
-import { useBottomScrollListener } from "react-bottom-scroll-listener";
+import React, { useEffect, useRef } from "react";
 import LinesEllipsis from "react-lines-ellipsis";
 import { TailSpin } from "react-loader-spinner";
 import useSWR from "swr";
@@ -163,22 +162,37 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
       writer,
     }),
   );
-  const { height, width } = useWindowSize();
+  const { width } = useWindowSize();
   const isLoadingMore =
     isLoading || (size > 0 && articles[size - 1] === undefined);
+  const reachedEnd =
+    (articles.at(-1)?.length === 0 ||
+      articlesCount === articles.flat().length) &&
+    articles.flat().length > 0;
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  useBottomScrollListener(
-    () => {
-      if (isLoadingMore) {
-        return;
-      }
+  useEffect(() => {
+    const node = sentinelRef.current;
 
-      setSize((prevSize) => prevSize + 1);
-    },
-    {
-      offset: height,
-    },
-  );
+    if (!node || reachedEnd) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !isLoadingMore) {
+          setSize((prev) => prev + 1);
+        }
+      },
+      { rootMargin: "1200px 0px" },
+    );
+
+    observer.observe(node);
+
+    return (): void => {
+      observer.disconnect();
+    };
+  }, [isLoadingMore, reachedEnd, setSize]);
 
   return (
     <div className={styles.container}>
@@ -312,10 +326,8 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
           </li>
         ))}
       </ul>
-      {(articles.at(-1)?.length === 0 ||
-        articlesCount === articles.flat().length) &&
-      !isValidating &&
-      !isLoading ? (
+      <div aria-hidden="true" ref={sentinelRef} />
+      {reachedEnd && !isValidating && !isLoading ? (
         <p className={styles.completed}>すべての記事を読み込みました</p>
       ) : (
         <TailSpin
