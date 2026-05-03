@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import queryString from "query-string";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import LinesEllipsis from "react-lines-ellipsis";
 import { TailSpin } from "react-loader-spinner";
 import useSWR from "swr";
@@ -163,13 +163,16 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
     }),
   );
   const { width } = useWindowSize();
+  const flatArticles = useMemo(() => articles.flat(), [articles]);
   const isLoadingMore =
     isLoading || (size > 0 && articles[size - 1] === undefined);
+  const lastPage = articles.at(-1);
   const reachedEnd =
-    (articles.at(-1)?.length === 0 ||
-      articlesCount === articles.flat().length) &&
-    articles.flat().length > 0;
+    lastPage !== undefined && (lastPage.length === 0 || lastPage.length < 24);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingRef = useRef(isLoadingMore);
+
+  loadingRef.current = isLoadingMore;
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -180,7 +183,7 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting) && !isLoadingMore) {
+        if (entries.some((e) => e.isIntersecting) && !loadingRef.current) {
           setSize((prev) => prev + 1);
         }
       },
@@ -192,7 +195,7 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
     return (): void => {
       observer.disconnect();
     };
-  }, [isLoadingMore, reachedEnd, setSize]);
+  }, [reachedEnd, setSize]);
 
   return (
     <div className={styles.container}>
@@ -255,8 +258,8 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
         </div>
       </div>
       <ul className={styles.list}>
-        {(articles.flat().length > 0 || !isValidating
-          ? articles.flat()
+        {(flatArticles.length > 0 || !isValidating
+          ? flatArticles
           : initialArticles
         ).map((article) => (
           <li className={styles.item} key={article.id}>
@@ -318,7 +321,9 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
                       ))}
                   </div>
                   <div className={styles.publishedAt}>
-                    {format(article.publishedAt!, "yyyy.MM.dd")}
+                    {article.publishedAt
+                      ? format(article.publishedAt, "yyyy.MM.dd")
+                      : ""}
                   </div>
                 </div>
               </div>
