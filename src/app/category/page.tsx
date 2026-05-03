@@ -1,9 +1,7 @@
 import prismaClient from "@/lib/prisma-client";
-import { type Category } from "@prisma/client";
+import { type Category, type Prisma } from "@prisma/client";
+import { cookies } from "next/headers";
 import CategoryComponent from "./_components/Category";
-
-// 12 時間
-export const revalidate = 43200;
 
 type CategoryWithCount = Category & {
   _count: {
@@ -11,7 +9,11 @@ type CategoryWithCount = Category & {
   };
 };
 
-const getCategories = async (): Promise<CategoryWithCount[]> => {
+const MOVIE_CATEGORIES = ["オモコロチャンネル", "ふっくらすずめクラブ"];
+const RADIO_CATEGORIES = ["限定ラジオ", "ラジオ"];
+const getCategories = async (
+  where: Prisma.CategoryWhereInput,
+): Promise<CategoryWithCount[]> => {
   const categories = await prismaClient.category.findMany({
     include: {
       _count: {
@@ -21,13 +23,26 @@ const getCategories = async (): Promise<CategoryWithCount[]> => {
     orderBy: {
       name: "asc",
     },
+    where,
   });
 
   return categories;
 };
 
 export default async function Page(): Promise<React.JSX.Element> {
-  const categories = await getCategories();
+  const cookieStore = await cookies();
+  const isNotOnigiri = cookieStore.get("is-not-onigiri")?.value === "true";
+  const isNotMovie = cookieStore.get("is-not-movie")?.value === "true";
+  const isNotRadio = cookieStore.get("is-not-radio")?.value === "true";
+  const excludeNames = [
+    ...(isNotMovie ? MOVIE_CATEGORIES : []),
+    ...(isNotRadio ? RADIO_CATEGORIES : []),
+  ];
+  const where: Prisma.CategoryWhereInput = {
+    ...(isNotOnigiri ? { isOnigiri: false } : {}),
+    ...(excludeNames.length > 0 ? { name: { notIn: excludeNames } } : {}),
+  };
+  const categories = await getCategories(where);
 
   return <CategoryComponent categories={categories} />;
 }
