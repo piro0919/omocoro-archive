@@ -5,6 +5,8 @@ import { type Element } from "domhandler";
 import { type NextRequest, NextResponse } from "next/server";
 import sleep from "sleep-promise";
 
+export const maxDuration = 300;
+
 const prisma = getPrismaDirectClient();
 const RETRY_DELAY = 2000;
 const PAGE_DELAY = 1000;
@@ -165,7 +167,11 @@ async function processArticle(
 async function fetchAndProcessPage(
   url: string,
   writers: Writer[],
-): Promise<{ articleCount: number; failedArticles: number }> {
+): Promise<{
+  articleCount: number;
+  failedArticles: number;
+  newArticles: number;
+}> {
   let failedArticles = 0;
 
   const response = await fetch(url);
@@ -182,6 +188,17 @@ async function fetchAndProcessPage(
       : $(".category-inner .box:not(.ad)");
 
   console.log(`Found ${articleElements.length} articles on ${url}`);
+
+  const urls = articleElements
+    .map((_, el) => $(el).find(".image a").attr("href"))
+    .get()
+    .filter((u): u is string => typeof u === "string" && u.length > 0);
+  const existing = await prisma.article.findMany({
+    select: { url: true },
+    where: { url: { in: urls } },
+  });
+  const existingUrls = new Set(existing.map((a) => a.url));
+  const newArticles = urls.filter((u) => !existingUrls.has(u)).length;
 
   for (const articleElement of articleElements) {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -202,10 +219,13 @@ async function fetchAndProcessPage(
     }
   }
 
-  return { articleCount: articleElements.length, failedArticles };
+  return {
+    articleCount: articleElements.length,
+    failedArticles,
+    newArticles,
+  };
 }
-
-// eslint-disable-next-line import/prefer-default-export
+ 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   console.log("Starting scraping process");
 
@@ -252,6 +272,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
         if (result.articleCount === 0) {
           console.log(`Finished - page ${page} had no articles`);
+
+          break;
+        }
+
+        if (result.newArticles === 0) {
+          console.log(
+            `Finished - page ${page} had no new articles (all already in DB)`,
+          );
 
           break;
         }
