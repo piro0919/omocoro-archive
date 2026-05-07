@@ -45,14 +45,9 @@ function extractArticleData(
       return null;
     }
 
-    if (!publishedAtStr) {
-      console.log(`Skipping article without date: ${title}`);
-
-      return null;
-    }
-
-    const parsed = new Date(publishedAtStr);
-    const publishedAt = Number.isNaN(parsed.getTime()) ? null : parsed;
+    const parsed = publishedAtStr ? new Date(publishedAtStr) : null;
+    const publishedAt =
+      parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
 
     return { category, publishedAt, thumbnail, title, url };
   } catch (error) {
