@@ -164,16 +164,21 @@ async function processArticle(
   }
 }
 
+type PageFailure = {
+  error: string;
+  pageUrl: string;
+  url: string;
+};
+
 async function fetchAndProcessPage(
   url: string,
   writers: Writer[],
 ): Promise<{
   articleCount: number;
-  failedArticles: number;
+  failures: PageFailure[];
   newArticles: number;
 }> {
-  let failedArticles = 0;
-
+  const failures: PageFailure[] = [];
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -201,31 +206,43 @@ async function fetchAndProcessPage(
   const newArticles = urls.filter((u) => !existingUrls.has(u)).length;
 
   for (const articleElement of articleElements) {
+    let lastError: unknown;
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         await processArticle($, articleElement, writers);
+        lastError = undefined;
 
         break;
-      } catch {
-        if (attempt === MAX_RETRIES) {
-          failedArticles++;
-          console.log(
-            `Failed to process article after ${MAX_RETRIES} attempts`,
-          );
-        } else {
+      } catch (error) {
+        lastError = error;
+
+        if (attempt < MAX_RETRIES) {
           await sleep(RETRY_DELAY);
         }
       }
+    }
+
+    if (lastError) {
+      const articleUrl =
+        $(articleElement).find(".image a").attr("href") ?? "(unknown)";
+      const message =
+        lastError instanceof Error ? lastError.message : String(lastError);
+
+      console.error(
+        `Failed to process article after ${MAX_RETRIES} attempts: ${articleUrl} — ${message}`,
+      );
+      failures.push({ error: message, pageUrl: url, url: articleUrl });
     }
   }
 
   return {
     articleCount: articleElements.length,
-    failedArticles,
+    failures,
     newArticles,
   };
 }
- 
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   console.log("Starting scraping process");
 
@@ -249,13 +266,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     console.log(`Found ${writers.length} existing writers`);
 
-    let totalFailedArticles = 0;
+    const allFailures: PageFailure[] = [];
 
     console.log("Processing main page");
 
     const main = await fetchAndProcessPage(BASE_URL, writers);
 
-    totalFailedArticles += main.failedArticles;
+    allFailures.push(...main.failures);
     await sleep(PAGE_DELAY);
 
     let page = 1;
@@ -268,7 +285,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
         const result = await fetchAndProcessPage(pageUrl, writers);
 
-        totalFailedArticles += result.failedArticles;
+        allFailures.push(...result.failures);
 
         if (result.articleCount === 0) {
           console.log(`Finished - page ${page} had no articles`);
@@ -294,11 +311,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     console.log(
-      `Scraping completed. Failed articles: ${totalFailedArticles}, Last page: ${page - 1}`,
+      `Scraping completed. Failed articles: ${allFailures.length}, Last page: ${page - 1}`,
     );
 
     return NextResponse.json({
-      failedArticles: totalFailedArticles,
+      failedArticles: allFailures.length,
+      failures: allFailures,
       lastProcessedPage: page - 1,
       success: true,
     });
