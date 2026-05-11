@@ -257,7 +257,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const writers = await prisma.writer.findMany();
+    let writers: Writer[] = [];
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        writers = await prisma.writer.findMany();
+
+        break;
+      } catch (error) {
+        if (attempt === 3) throw error;
+
+        console.warn(
+          `DB connect attempt ${attempt} failed, retrying: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        await sleep(3000);
+      }
+    }
 
     console.log(`Found ${writers.length} existing writers`);
 
