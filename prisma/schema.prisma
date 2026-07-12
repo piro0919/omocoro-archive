@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
@@ -9,6 +10,8 @@ datasource db {
   // Uses direct connection, ⚠️ make sure to keep this to `POSTGRES_URL_NON_POOLING`
   // or you'll have dangling databases from migrations
   directUrl = env("POSTGRES_URL_NON_POOLING")
+  // pg_trgm powers the trigram GIN index used for title keyword search
+  extensions = [pg_trgm]
 }
 
 // 記事モデル
@@ -27,6 +30,8 @@ model Article {
 
   @@index([publishedAt])
   @@index([categoryId])
+  // Trigram GIN index so title keyword search (ILIKE %word%) uses an index
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
 // カテゴリモデル
