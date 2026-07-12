@@ -22,7 +22,7 @@ type Writer = {
 
 type ArticleInput = {
   category: string;
-  publishedAt: Date | null;
+  publishedAt: Date;
   thumbnail: string;
   title: string;
   url: string;
@@ -48,6 +48,12 @@ function extractArticleData(
     const parsed = publishedAtStr ? new Date(publishedAtStr) : null;
     const publishedAt =
       parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
+
+    if (!publishedAt) {
+      console.log(`Skipping article without publish date: ${title}`);
+
+      return null;
+    }
 
     return { category, publishedAt, thumbnail, title, url };
   } catch (error) {
@@ -105,16 +111,10 @@ async function processWriters(
 
 async function processArticle(
   $: cheerio.CheerioAPI,
-  articleElement: Element,
+  $article: cheerio.Cheerio<Element>,
+  articleData: ArticleInput,
   writers: Writer[],
 ): Promise<void> {
-  const $article = $(articleElement);
-  const articleData = extractArticleData($, $article);
-
-  if (!articleData) {
-    throw new Error("Failed to extract article data");
-  }
-
   try {
     console.log(`Processing: ${articleData.title}`);
 
@@ -189,10 +189,24 @@ async function fetchAndProcessPage(
 
   console.log(`Found ${articleElements.length} articles on ${url}`);
 
-  const urls = articleElements
-    .map((_, el) => $(el).find(".image a").attr("href"))
+  // 抽出できない記事（必須項目欠落・公開日なし）はここで除外し、
+  // 新規判定・処理ループの両方でこの結果を使う
+  const articles = articleElements
+    .map((_, el) => {
+      const $article = $(el);
+
+      return { $article, articleData: extractArticleData($, $article) };
+    })
     .get()
-    .filter((u): u is string => typeof u === "string" && u.length > 0);
+    .filter(
+      (
+        a,
+      ): a is {
+        $article: cheerio.Cheerio<Element>;
+        articleData: ArticleInput;
+      } => a.articleData !== null,
+    );
+  const urls = articles.map((a) => a.articleData.url);
   const existing = await prisma.article.findMany({
     select: { url: true },
     where: { url: { in: urls } },
@@ -200,12 +214,12 @@ async function fetchAndProcessPage(
   const existingUrls = new Set(existing.map((a) => a.url));
   const newArticles = urls.filter((u) => !existingUrls.has(u)).length;
 
-  for (const articleElement of articleElements) {
+  for (const { $article, articleData } of articles) {
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        await processArticle($, articleElement, writers);
+        await processArticle($, $article, articleData, writers);
         lastError = undefined;
 
         break;
@@ -219,8 +233,7 @@ async function fetchAndProcessPage(
     }
 
     if (lastError) {
-      const articleUrl =
-        $(articleElement).find(".image a").attr("href") ?? "(unknown)";
+      const articleUrl = articleData.url;
       const message =
         lastError instanceof Error ? lastError.message : String(lastError);
 

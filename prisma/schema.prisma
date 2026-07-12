@@ -18,7 +18,7 @@ model Article {
   url         String    @unique // オリジナルの記事URL
   thumbnail   String // サムネイル画像URL
   categoryId  String // カテゴリID
-  publishedAt DateTime? // 公開日時
+  publishedAt DateTime // 公開日時
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

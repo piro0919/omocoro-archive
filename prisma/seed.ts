@@ -314,10 +314,14 @@ async function migrateArticles(
                   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
                   const { category, writers, ...articleData } = article;
                   const { publishedAt, ...restArticleData } = articleData;
+
+                  // 公開日なしの記事は移行しない
+                  if (!publishedAt) continue;
+
                   const createData = {
                     ...restArticleData,
-                    ...(publishedAt ? { publishedAt } : {}),
                     categoryId: article.categoryId,
+                    publishedAt,
                     writers: {
                       connect: writers.map((writer) => ({ id: writer.id })),
                     },
