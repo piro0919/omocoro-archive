@@ -1,4 +1,4 @@
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/next";
 import { type Metadata, type Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
@@ -66,10 +66,8 @@ export default function RootLayout({
             <Layout>{children}</Layout>
           </NuqsAdapter>
         </ThemeProvider>
+        <Analytics />
       </body>
-      {process.env.NODE_ENV === "production" ? (
-        <GoogleAnalytics gaId="G-EL918GHVFM" />
-      ) : null}
     </html>
   );
 }
