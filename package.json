@@ -41,6 +41,7 @@
     "@commitlint/config-conventional": "20.0.0",
     "@eslint/eslintrc": "^3",
     "@eslint/js": "9.18.0",
+    "@lhci/cli": "0.15.1",
     "@piro0919/next-unused": "0.2.2",
     "@total-typescript/ts-reset": "0.6.1",
     "@types/node": "^24.0.0",
@@ -131,7 +132,8 @@
     "studio:dev": "dotenv -e .env.development.local -- npm run studio",
     "studio:prod": "dotenv -e .env.local -- npm run studio",
     "type-check": "tsc --noemit",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build && next-sitemap"
+    "vercel-build": "prisma generate && prisma migrate deploy && next build && next-sitemap",
+    "lighthouse": "npm run build && lhci autorun"
   },
   "version": "0.1.0"
 }

@@ -48,3 +48,6 @@ public/swe-worker*
 # next-sitemap
 public/sitemap*.xml
 public/robots.txt
+
+# Lighthouse CI reports
+.lighthouseci
