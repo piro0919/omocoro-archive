@@ -23,7 +23,7 @@ export default function MobileSearch({
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
-        <button onClick={onClose}>
+        <button aria-label="戻る" onClick={onClose}>
           <IconArrowLeft size={24} />
         </button>
         <form
@@ -44,13 +44,18 @@ export default function MobileSearch({
               onClick={() => {
                 setKeyword("");
               }}
+              aria-label="検索語を消す"
               className={styles.clearButton}
               disabled={!keyword}
               type="button"
             >
               <IconX size={18} />
             </button>
-            <button className={styles.submitButton} type="submit">
+            <button
+              aria-label="検索する"
+              className={styles.submitButton}
+              type="submit"
+            >
               <IconSearch size={18} />
             </button>
           </div>

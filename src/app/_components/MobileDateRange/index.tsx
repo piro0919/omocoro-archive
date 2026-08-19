@@ -19,11 +19,12 @@ export default function MobileDateRange({
   return (
     <div className={styles.container}>
       <div className={styles.inner}>
-        <button onClick={onClose}>
+        <button aria-label="戻る" onClick={onClose}>
           <IconArrowLeft size={24} />
         </button>
         <div className={styles.dateRange}>
           <input
+            aria-label="開始日"
             className={styles.input}
             onChange={(e) => setFromDate(e.target.value)}
             type="date"
@@ -31,6 +32,7 @@ export default function MobileDateRange({
           />
           <span className={styles.separator}>〜</span>
           <input
+            aria-label="終了日"
             className={styles.input}
             onChange={(e) => setToDate(e.target.value)}
             type="date"
@@ -41,6 +43,7 @@ export default function MobileDateRange({
               setFromDate("");
               setToDate("");
             }}
+            aria-label="日付の絞り込みを消す"
             className={styles.clearButton2}
             disabled={!fromDate && !toDate}
             type="button"

@@ -154,13 +154,18 @@ export default function Header(): React.JSX.Element {
                   onClick={() => {
                     setKeyword("");
                   }}
+                  aria-label="検索語を消す"
                   className={styles.clearButton}
                   disabled={!keyword}
                   type="button"
                 >
                   <IconX size={18} />
                 </button>
-                <button className={styles.submitButton} type="submit">
+                <button
+                  aria-label="検索する"
+                  className={styles.submitButton}
+                  type="submit"
+                >
                   <IconSearch size={18} />
                 </button>
               </div>
@@ -169,6 +174,7 @@ export default function Header(): React.JSX.Element {
           {pathname === "/" ? (
             <div className={styles.buttons}>
               <button
+                aria-label="検索を開く"
                 className={styles.searchButton}
                 onClick={() => setIsMobileSearchOpen(true)}
               >
@@ -176,12 +182,14 @@ export default function Header(): React.JSX.Element {
               </button>
               <div ref={ref}>
                 <button
+                  aria-label="日付で絞り込む"
                   className={styles.mobileCalendarButton}
                   onClick={() => setIsMobileDateRangeOpen(true)}
                 >
                   <IconCalendar size={21} />
                 </button>
                 <button
+                  aria-label="日付で絞り込む"
                   className={styles.calendarButton}
                   ref={refs.setReference}
                   {...getReferenceProps()}
@@ -203,6 +211,7 @@ export default function Header(): React.JSX.Element {
                       strokeWidth={1}
                     />
                     <input
+                      aria-label="開始日"
                       className={styles.input}
                       onChange={(e) => setFromDate(e.target.value)}
                       type="date"
@@ -210,6 +219,7 @@ export default function Header(): React.JSX.Element {
                     />
                     <span className={styles.separator}>〜</span>
                     <input
+                      aria-label="終了日"
                       className={styles.input}
                       onChange={(e) => setToDate(e.target.value)}
                       type="date"
@@ -220,6 +230,7 @@ export default function Header(): React.JSX.Element {
                         setFromDate("");
                         setToDate("");
                       }}
+                      aria-label="日付の絞り込みを消す"
                       className={styles.clearButton2}
                       disabled={!fromDate && !toDate}
                       type="button"
