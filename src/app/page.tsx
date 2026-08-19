@@ -1,6 +1,6 @@
-import prismaClient from "@/lib/prisma-client";
 import { type Article, type Category, type Writer } from "@prisma/client";
 import { Suspense } from "react";
+import prismaClient from "@/lib/prisma-client";
 import App from "./_components/App";
 
 // 12 時間

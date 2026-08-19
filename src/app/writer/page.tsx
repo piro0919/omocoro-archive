@@ -1,5 +1,5 @@
-import prismaClient from "@/lib/prisma-client";
 import { type Writer } from "@prisma/client";
+import prismaClient from "@/lib/prisma-client";
 import WriterComponent from "./_components/Writer";
 
 // 12 時間

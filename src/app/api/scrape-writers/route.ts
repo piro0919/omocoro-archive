@@ -1,6 +1,6 @@
-import prismaClient from "@/lib/prisma-client";
 import * as cheerio from "cheerio";
 import { NextResponse } from "next/server";
+import prismaClient from "@/lib/prisma-client";
 
 type Writer = {
   avatarUrl?: string;

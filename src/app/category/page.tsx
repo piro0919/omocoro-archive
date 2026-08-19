@@ -1,6 +1,6 @@
-import prismaClient from "@/lib/prisma-client";
 import { type Category, type Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
+import prismaClient from "@/lib/prisma-client";
 import CategoryComponent from "./_components/Category";
 
 type CategoryWithCount = Category & {

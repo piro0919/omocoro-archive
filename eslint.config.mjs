@@ -153,11 +153,10 @@ const eslintConfig = [
             "internal",
             ["parent", "sibling"],
             "index",
-            "object",
             "type",
             "unknown",
           ],
-          newlinesBetween: "never",
+          newlinesBetween: 0,
           order: "asc",
           type: "natural",
         },
@@ -172,7 +171,8 @@ const eslintConfig = [
       "perfectionist/sort-jsx-props": [
         "error",
         {
-          groups: ["multiline", "shorthand", "unknown"],
+          // perfectionist 5 で multiline / shorthand の分類名が変わった。
+          groups: ["multiline-prop", "shorthand-prop", "unknown"],
           order: "asc",
           type: "natural",
         },

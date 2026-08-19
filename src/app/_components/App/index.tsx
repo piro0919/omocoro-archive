@@ -1,5 +1,4 @@
 "use client";
-import fetcher from "@/lib/fetcher";
 import { type Article, type Category, type Writer } from "@prisma/client";
 import { useGetCookie } from "cookies-next/client";
 import { format } from "date-fns";
@@ -10,6 +9,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { TailSpin } from "react-loader-spinner";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
+import fetcher from "@/lib/fetcher";
 import styles from "./style.module.css";
 
 const getArticlesKey =

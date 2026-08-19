@@ -1,9 +1,9 @@
-import env from "@/env";
-import { getPrismaDirectClient } from "@/lib/prisma-client";
 import * as cheerio from "cheerio";
 import { type Element } from "domhandler";
 import { type NextRequest, NextResponse } from "next/server";
 import sleep from "sleep-promise";
+import env from "@/env";
+import { getPrismaDirectClient } from "@/lib/prisma-client";
 
 export const maxDuration = 300;
 

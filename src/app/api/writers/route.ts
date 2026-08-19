@@ -1,6 +1,6 @@
-import prismaClient from "@/lib/prisma-client";
 import { type Writer } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
+import prismaClient from "@/lib/prisma-client";
 
 type WriterWithCount = Writer & {
   _count: {
