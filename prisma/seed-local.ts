@@ -1,3 +1,4 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import * as dotenv from "dotenv";
 
@@ -8,11 +9,7 @@ if (!process.env.POSTGRES_PRISMA_URL) {
 }
 
 const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.POSTGRES_PRISMA_URL,
-    },
-  },
+  adapter: new PrismaPg({ connectionString: process.env.POSTGRES_PRISMA_URL }),
   log: ["info", "warn", "error"],
 });
 // サンプルカテゴリデータ

@@ -1,3 +1,4 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import * as dotenv from "dotenv";
 import * as fs from "fs/promises";
@@ -15,19 +16,11 @@ if (!process.env.VERCEL_POSTGRES_URL) {
 }
 
 const dockerPrisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.POSTGRES_PRISMA_URL,
-    },
-  },
+  adapter: new PrismaPg({ connectionString: process.env.POSTGRES_PRISMA_URL }),
   log: ["warn", "error"],
 });
 const vercelPrisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.VERCEL_POSTGRES_URL,
-    },
-  },
+  adapter: new PrismaPg({ connectionString: process.env.VERCEL_POSTGRES_URL }),
   log: ["warn", "error"],
 });
 // 設定値の調整
