@@ -110,6 +110,8 @@
   border: 1px solid hsl(from var(--border) h s l);
   border-radius: 6px;
   font-size: 1.1rem;
+  /* 指で押す対象は 24px 以上。高さが 22px しか無く、Lighthouse の target-size が 0 だった。 */
+  min-height: 24px;
   padding: 3px 6px;
 }
 
