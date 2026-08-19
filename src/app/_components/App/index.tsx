@@ -7,11 +7,9 @@ import Image from "next/image";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import queryString from "query-string";
 import React, { useEffect, useMemo, useRef } from "react";
-import LinesEllipsis from "react-lines-ellipsis";
 import { TailSpin } from "react-loader-spinner";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
-import { useWindowSize } from "usehooks-ts";
 import styles from "./style.module.css";
 
 const getArticlesKey =
@@ -162,7 +160,6 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
       writer,
     }),
   );
-  const { width } = useWindowSize();
   const flatArticles = useMemo(() => articles.flat(), [articles]);
   const isLoadingMore =
     isLoading || (size > 0 && articles[size - 1] === undefined);
@@ -271,20 +268,14 @@ export default function App({ initialArticles }: AppProps): React.JSX.Element {
                   alt={article.title}
                   className={styles.image}
                   fill={true}
+                  /* 一覧は 250px 幅から敷き詰める。狭い画面ではカードの 35%。
+                     指定しないと画面幅ぶんの大きさで配られる。 */
+                  sizes="(width < 532px) 40vw, (width < 1024px) 50vw, 340px"
                   src={article.thumbnail}
                 />
               </div>
               <div className={styles.detail}>
-                <div className={styles.title}>
-                  <LinesEllipsis
-                    basedOn="letters"
-                    ellipsis="..."
-                    maxLine="2"
-                    text={article.title}
-                    trimRight={true}
-                    winWidth={width}
-                  />
-                </div>
+                <div className={styles.title}>{article.title}</div>
                 <div className={styles.meta}>
                   <div className={styles.metaButtons}>
                     <button

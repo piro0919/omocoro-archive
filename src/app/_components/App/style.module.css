@@ -77,9 +77,14 @@
 }
 
 .title {
+  /* 2行で切る。JS で測って切っていたときは、題名が出るまで描画が待たされていた。 */
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
   font-size: 1.4rem;
   font-weight: 700;
+  -webkit-line-clamp: 2;
   line-height: 1.25;
+  overflow: hidden;
 }
 
 .meta {
