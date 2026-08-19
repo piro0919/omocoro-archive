@@ -1,6 +1,14 @@
 import { type Writer } from "@prisma/client";
 import prismaClient from "@/lib/prisma-client";
+import pageMetadata from "../pageMetadata";
 import WriterComponent from "./_components/Writer";
+
+export const metadata = pageMetadata({
+  description:
+    "オモコロに記事を書いているライターの一覧です。ライターごとの記事数から、気になる書き手を辿れます。",
+  path: "/writer",
+  title: "ライター一覧",
+});
 
 // 12 時間
 export const revalidate = 43200;

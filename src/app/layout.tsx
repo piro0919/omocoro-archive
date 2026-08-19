@@ -11,10 +11,12 @@ import Layout from "./_components/Layout";
 const notoSansJP = NotoSansJP({ subsets: ["latin"] });
 const APP_NAME = "オモコロアーカイブ";
 const APP_DEFAULT_TITLE = "オモコロアーカイブ";
-const APP_TITLE_TEMPLATE = "%s";
+const APP_TITLE_TEMPLATE = "%s | オモコロアーカイブ";
+const SITE_URL = "https://omocoro-archive.kkweb.io";
 const APP_DESCRIPTION = "オモコロの非公式アーカイブサイトです";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -26,6 +28,7 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     description: APP_DESCRIPTION,
     siteName: APP_NAME,
@@ -34,6 +37,7 @@ export const metadata: Metadata = {
       template: APP_TITLE_TEMPLATE,
     },
     type: "website",
+    url: "/",
   },
   title: {
     default: APP_DEFAULT_TITLE,

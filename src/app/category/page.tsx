@@ -1,7 +1,15 @@
 import { type Category, type Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import prismaClient from "@/lib/prisma-client";
+import pageMetadata from "../pageMetadata";
 import CategoryComponent from "./_components/Category";
+
+export const metadata = pageMetadata({
+  description:
+    "オモコロの記事をカテゴリーから探せます。オモコロチャンネルやふっくらすずめクラブなどの動画、ラジオもまとめています。",
+  path: "/category",
+  title: "カテゴリー一覧",
+});
 
 type CategoryWithCount = Category & {
   _count: {
