@@ -1,3 +1,4 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = global as unknown as {
@@ -5,7 +6,14 @@ const globalForPrisma = global as unknown as {
   prismaDirect: PrismaClient | undefined;
 };
 
-export const prismaClient = globalForPrisma.prisma ?? new PrismaClient();
+// Prisma 7 は接続先を schema からではなくドライバアダプタから受け取る。
+// 通常のリクエストはプール側、長く走る仕事は非プール側という使い分けは変えない。
+function createClient(connectionString: string): PrismaClient {
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+}
+
+export const prismaClient =
+  globalForPrisma.prisma ?? createClient(process.env.POSTGRES_PRISMA_URL ?? "");
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prismaClient;
@@ -31,9 +39,7 @@ export function getPrismaDirectClient(): PrismaClient {
         "",
     );
 
-    globalForPrisma.prismaDirect = new PrismaClient({
-      datasources: { db: { url } },
-    });
+    globalForPrisma.prismaDirect = createClient(url);
   }
 
   return globalForPrisma.prismaDirect;

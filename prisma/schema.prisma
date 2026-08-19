@@ -4,12 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  // Uses connection pooling
-  url       = env("POSTGRES_PRISMA_URL")
-  // Uses direct connection, ⚠️ make sure to keep this to `POSTGRES_URL_NON_POOLING`
-  // or you'll have dangling databases from migrations
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "postgresql"
+  // 接続 URL は Prisma 7 から prisma.config.ts で渡す。
   // pg_trgm powers the trigram GIN index used for title keyword search
   extensions = [pg_trgm]
 }
