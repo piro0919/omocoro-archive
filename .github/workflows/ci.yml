@@ -16,4 +16,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # 型検査には生成された Prisma Client が要る。generate は接続しないので、
+      # prisma.config.ts が求める URL は形だけ合っていればよい。
+      - run: npx prisma generate
+        env:
+          POSTGRES_URL_NON_POOLING: postgresql://user:pass@localhost:5432/db
       - run: npm run type-check
