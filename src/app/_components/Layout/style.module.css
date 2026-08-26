@@ -14,6 +14,7 @@
 
 .main {
   margin-top: 60px;
+
   @media (width < 740px) {
     margin-bottom: calc(60px + env(safe-area-inset-bottom));
   }
