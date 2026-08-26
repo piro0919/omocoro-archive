@@ -94,6 +94,9 @@ export default function Writer({
                     fill={true}
                     loading="lazy"
                     referrerPolicy="no-referrer"
+                    /* アイコンは常に 42px 角。指定しないと fill が 100vw 扱いになり、
+                       204 人ぶんを 1920px 幅で取りに行ってしまう。 */
+                    sizes="42px"
                     src={writer.avatarUrl}
                   />
                 </div>
