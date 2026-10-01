@@ -3,6 +3,8 @@ import { type Element } from "domhandler";
 import { type NextRequest, NextResponse } from "next/server";
 import sleep from "sleep-promise";
 import env from "@/env";
+import isAuthorizedCronRequest from "@/lib/cron-auth";
+import fetchOmocoro from "@/lib/omocoro-fetch";
 import { getPrismaDirectClient } from "@/lib/prisma-client";
 
 export const maxDuration = 300;
@@ -12,6 +14,12 @@ const RETRY_DELAY = 2000;
 const PAGE_DELAY = 1000;
 const MAX_RETRIES = 5;
 const BASE_URL = "https://omocoro.jp";
+// The run stops after this number of consecutive pages with nothing new.
+// Stopping at the first all-known page meant that when a run died partway, the
+// next run met the stored pages first and quit, and never visited the pages past
+// the point the failed run reached. Walking three known pages further lets later
+// runs reach that gap and fill it.
+const KNOWN_PAGES_BEFORE_STOP = 3;
 
 type Writer = {
   avatarUrl?: string;
@@ -172,9 +180,10 @@ async function fetchAndProcessPage(
   articleCount: number;
   failures: PageFailure[];
   newArticles: number;
+  parsedArticles: number;
 }> {
   const failures: PageFailure[] = [];
-  const response = await fetch(url);
+  const response = await fetchOmocoro(url);
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -248,17 +257,18 @@ async function fetchAndProcessPage(
     articleCount: articleElements.length,
     failures,
     newArticles,
+    parsedArticles: articles.length,
   };
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   console.log("Starting scraping process");
 
-  const authHeader = request.headers.get("authorization");
-
   if (
-    process.env.NODE_ENV !== "development" &&
-    authHeader !== `Bearer ${env.CRON_SECRET}`
+    !isAuthorizedCronRequest(
+      request.headers.get("authorization"),
+      env.CRON_SECRET,
+    )
   ) {
     return NextResponse.json(
       {
@@ -289,36 +299,78 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     console.log(`Found ${writers.length} existing writers`);
 
+    // runErrors holds problems that mean the run did not do its job: a fetch
+    // failed, or a page that always has articles parsed to none (the markup
+    // changed and the selectors no longer match). Vercel Cron sees a failure
+    // through the status code alone, so these turn the response into a 500.
     const allFailures: PageFailure[] = [];
+    const runErrors: string[] = [];
+
+    let newArticles = 0;
+    let parsedArticles = 0;
 
     console.log("Processing main page");
 
-    const main = await fetchAndProcessPage(BASE_URL, writers);
+    try {
+      const main = await fetchAndProcessPage(BASE_URL, writers);
 
-    allFailures.push(...main.failures);
+      allFailures.push(...main.failures);
+      newArticles += main.newArticles;
+      parsedArticles += main.parsedArticles;
+
+      if (main.parsedArticles === 0) {
+        runErrors.push(`Parsed 0 articles from ${BASE_URL}`);
+      }
+    } catch (error) {
+      runErrors.push(
+        `Failed to fetch ${BASE_URL}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
     await sleep(PAGE_DELAY);
 
     let page = 1;
+    let lastProcessedPage = 0;
+    let knownPagesInARow = 0;
 
     while (true) {
-      try {
-        const pageUrl = `${BASE_URL}/newpost/page/${page}`;
+      const pageUrl = `${BASE_URL}/newpost/page/${page}`;
 
+      try {
         console.log(`Processing page ${page}`);
 
         const result = await fetchAndProcessPage(pageUrl, writers);
 
         allFailures.push(...result.failures);
+        newArticles += result.newArticles;
+        parsedArticles += result.parsedArticles;
+        lastProcessedPage = page;
 
         if (result.articleCount === 0) {
+          // The first listing page is never empty, so an empty one there means
+          // the selector broke rather than that the list ended.
+          if (page === 1) {
+            runErrors.push(`Found 0 articles on ${pageUrl}`);
+          }
+
           console.log(`Finished - page ${page} had no articles`);
 
           break;
         }
 
-        if (result.newArticles === 0) {
+        if (result.parsedArticles === 0) {
+          runErrors.push(
+            `Parsed 0 of ${result.articleCount} articles on ${pageUrl}`,
+          );
+
+          break;
+        }
+
+        knownPagesInARow = result.newArticles === 0 ? knownPagesInARow + 1 : 0;
+
+        if (knownPagesInARow >= KNOWN_PAGES_BEFORE_STOP) {
           console.log(
-            `Finished - page ${page} had no new articles (all already in DB)`,
+            `Finished - ${knownPagesInARow} pages in a row had no new articles (last: page ${page})`,
           );
 
           break;
@@ -327,22 +379,36 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         page++;
         await sleep(PAGE_DELAY);
       } catch (error) {
-        console.error(`Failed to process page ${page}:`, error);
+        runErrors.push(
+          `Failed to process ${pageUrl}: ${error instanceof Error ? error.message : String(error)}`,
+        );
 
         break;
       }
     }
 
-    console.log(
-      `Scraping completed. Failed articles: ${allFailures.length}, Last page: ${page - 1}`,
-    );
-
-    return NextResponse.json({
+    const summary = {
       failedArticles: allFailures.length,
       failures: allFailures,
-      lastProcessedPage: page - 1,
-      success: true,
-    });
+      lastProcessedPage,
+      newArticles,
+      parsedArticles,
+    };
+
+    if (runErrors.length > 0) {
+      console.error("Scraping run failed:", { ...summary, errors: runErrors });
+
+      return NextResponse.json(
+        { ...summary, errors: runErrors, success: false },
+        { status: 500 },
+      );
+    }
+
+    console.log(
+      `Scraping completed. New articles: ${newArticles}, Failed articles: ${allFailures.length}, Last page: ${lastProcessedPage}`,
+    );
+
+    return NextResponse.json({ ...summary, success: true });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";

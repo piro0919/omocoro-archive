@@ -1,5 +1,8 @@
 import * as cheerio from "cheerio";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import env from "@/env";
+import isAuthorizedCronRequest from "@/lib/cron-auth";
+import fetchOmocoro from "@/lib/omocoro-fetch";
 import prismaClient from "@/lib/prisma-client";
 
 type Writer = {
@@ -9,8 +12,30 @@ type Writer = {
 };
 
 // eslint-disable-next-line import/prefer-default-export
-export async function GET(): Promise<NextResponse> {
-  const response = await fetch("https://omocoro.jp/writer");
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  if (
+    !isAuthorizedCronRequest(
+      request.headers.get("authorization"),
+      env.CRON_SECRET,
+    )
+  ) {
+    return NextResponse.json(
+      { error: "Unauthorized", success: false },
+      { status: 401 },
+    );
+  }
+
+  const response = await fetchOmocoro("https://omocoro.jp/writer");
+
+  if (!response.ok) {
+    console.error(`Failed to fetch writer list: HTTP ${response.status}`);
+
+    return NextResponse.json(
+      { error: `HTTP error! status: ${response.status}`, success: false },
+      { status: 502 },
+    );
+  }
+
   const html = await response.text();
   const $ = cheerio.load(html);
   const writerElements = $(".writers .box");
@@ -27,6 +52,17 @@ export async function GET(): Promise<NextResponse> {
       name,
       profileUrl,
     });
+  }
+
+  if (writers.length === 0) {
+    console.error(
+      "Parsed 0 writers from the writer list; selector may be broken",
+    );
+
+    return NextResponse.json(
+      { error: "No writers found on the writer list", success: false },
+      { status: 502 },
+    );
   }
 
   const notCorrectWriter = writers.find(
@@ -54,5 +90,6 @@ export async function GET(): Promise<NextResponse> {
 
   return NextResponse.json({
     success: true,
+    writers: writers.length,
   });
 }
