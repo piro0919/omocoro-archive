@@ -76,10 +76,13 @@ export function buildArticleWhere(
       }));
   }
 
-  if (from || to) {
+  const fromDate = parseDateParam(from);
+  const toDate = parseDateParam(to);
+
+  if (fromDate || toDate) {
     where.publishedAt = {
-      ...(from ? { gte: new Date(from) } : {}),
-      ...(to ? { lte: new Date(to) } : {}),
+      ...(fromDate ? { gte: fromDate } : {}),
+      ...(toDate ? { lte: toDate } : {}),
     };
   }
 
@@ -101,6 +104,18 @@ export function parsePagination(searchParams: URLSearchParams): {
   const page = Number.isFinite(rawPage) && rawPage >= 0 ? rawPage : 0;
 
   return { skip: page * take, take };
+}
+
+// `new Date("abc")` is an Invalid Date, and Prisma rejects it with a 500. A
+// date the URL can't express counts as no date, like an empty field.
+export function parseDateParam(value: null | string): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export function parseOrder(searchParams: URLSearchParams): "asc" | "desc" {
