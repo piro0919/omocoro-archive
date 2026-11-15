@@ -22,9 +22,12 @@
 }
 
 .logo {
-  aspect-ratio: 1220 / 184;
-  height: min(36px, 7.2dvw);
+  --logo-height: min(36px, 7.2dvw);
+
+  /* Safari sizes the box from the image's 1220px width unless the width is set */
+  height: var(--logo-height);
   position: relative;
+  width: calc(var(--logo-height) * 1220 / 184);
 }
 
 .form {
