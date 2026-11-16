@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { type ReactNode, Suspense } from "react";
 import ScrollToTop from "react-scroll-to-top";
 import { SWRConfig } from "swr";
-import useShowWindowSize from "use-show-window-size";
+import { useShowWindowSize } from "use-show-window-size";
 import fetcher from "@/lib/fetcher";
 import Footer from "../Footer";
 import Header from "../Header";
