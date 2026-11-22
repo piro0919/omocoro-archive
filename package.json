@@ -133,7 +133,7 @@
     "studio:dev": "dotenv -e .env.development.local -- npm run studio",
     "studio:prod": "dotenv -e .env.local -- npm run studio",
     "type-check": "tsc --noemit",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build --webpack",
     "lighthouse": "npm run build && lhci autorun",
     "test": "tsx --test 'src/**/*.test.ts'"
   },
