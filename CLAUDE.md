@@ -109,7 +109,7 @@ Uses conventional commits with additional rules:
 ## Development Notes
 
 - React Strict Mode is disabled for compatibility
-- Images are unoptimized in Next.js config
+- Images go through next/image (remotePatterns for omocoro.jp). Vercel bills each source image × width as one transformation, so `deviceSizes` / `imageSizes` in `next.config.ts` are cut to the widths the layout needs (thumbnails are 800px wide at the source). Turning optimisation off would make browsers hotlink omocoro.jp directly; the old `/api/proxy` existed to get around its hotlink protection, so keep fetching through Vercel
 - Uses React 19 with backwards compatibility overrides
 - Service worker disabled in development mode
 - PWA installability supported with proper manifest
