@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.kkweb.omocoroarchive",
+      "sha256_cert_fingerprints": [
+        "2A:61:97:9C:82:90:67:5F:E8:73:B3:A6:C4:DA:CD:E1:2F:A2:21:2D:37:58:BC:2A:3B:65:0C:FB:8C:4A:98:88"
+      ]
+    }
+  }
+]
